@@ -8,6 +8,9 @@
 							http://www.springframework.org/schema/osgi/spring-osgi-1.1.xsd">
 
 	<!-- Exports the service implementation to other bundles by its service interface -->
-	<osgi:service id="JLEMSSolverExporter" ref="JLEMSSolverService" interface="org.openworm.simulationengine.core.solver.ISolver" />
-	
+	<osgi:service id="JLEMSSolverExporter" ref="JLEMSSimulatorService" interface="org.geppetto.core.simulator.ISimulator">
+		<osgi:service-properties>
+			<entry key="discoverableID" value="jLemsSimulator" />
+		</osgi:service-properties>
+	</osgi:service>
 </beans>
