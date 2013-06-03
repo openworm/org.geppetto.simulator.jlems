@@ -8,5 +8,5 @@
 		and configure -->
 	<context:annotation-config />
 	<context:component-scan
-		base-package="org.geppetto.solver.jlems" />
+		base-package="org.geppetto.simulator.jlems" />
 </beans>
