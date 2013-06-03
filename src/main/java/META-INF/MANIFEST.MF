@@ -3,11 +3,11 @@ Bnd-LastModified: 1367605376512
 Build-Jdk: 1.6.0_45
 Built-By: matteocantarelli
 Bundle-ManifestVersion: 2
-Bundle-Name: solver.jlems
-Bundle-SymbolicName: org.geppetto.solver.jlems
+Bundle-Name: simulator.jlems
+Bundle-SymbolicName: org.geppetto.simulator.jlems
 Bundle-Version: 0.0.1
 Created-By: Apache Maven Bundle Plugin
-Export-Package: org.geppetto.solver.jlems;uses:="org.geppetto.core.simul
+Export-Package: org.geppetto.simulator.jlems;uses:="org.geppetto.core.simul
  ation,org.geppetto.core.model,org.geppetto.core.model.values,org.lemsml
  .jlems.core.api.interfaces,org.apache.commons.logging,org.lemsml.jlems.
  core.api,org.geppetto.core.common,org.geppetto.core.simulator,org.sprin
