@@ -1,4 +1,4 @@
 org.geppetto.simulator.jlems
 =========================
 
-jLEMS based solver for Geppetto
+jLEMS based simulator for Geppetto
