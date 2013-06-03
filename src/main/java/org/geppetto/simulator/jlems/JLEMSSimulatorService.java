@@ -31,7 +31,7 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  *******************************************************************************/
 
-package org.geppetto.solver.jlems;
+package org.geppetto.simulator.jlems;
 
 import java.util.ArrayList;
 import java.util.Collection;
