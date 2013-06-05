@@ -32,18 +32,38 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
+import java.util.Collection;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.model.IModel;
+import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.state.StateTreeRoot;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
+import org.lemsml.jlems.core.api.LEMSBuildConfiguration;
+import org.lemsml.jlems.core.api.LEMSBuildException;
+import org.lemsml.jlems.core.api.LEMSBuildOptions;
+import org.lemsml.jlems.core.api.LEMSBuildOptionsEnum;
+import org.lemsml.jlems.core.api.LEMSBuilder;
+import org.lemsml.jlems.core.api.LEMSDocumentReader;
+import org.lemsml.jlems.core.api.LEMSExecutionException;
 import org.lemsml.jlems.core.api.LEMSResultsContainer;
+import org.lemsml.jlems.core.api.LEMSRunConfiguration;
+import org.lemsml.jlems.core.api.LEMSSimulator;
+import org.lemsml.jlems.core.api.interfaces.ILEMSBuildConfiguration;
+import org.lemsml.jlems.core.api.interfaces.ILEMSBuildOptions;
+import org.lemsml.jlems.core.api.interfaces.ILEMSBuilder;
+import org.lemsml.jlems.core.api.interfaces.ILEMSDocument;
 import org.lemsml.jlems.core.api.interfaces.ILEMSResultsContainer;
+import org.lemsml.jlems.core.api.interfaces.ILEMSRunConfiguration;
 import org.lemsml.jlems.core.api.interfaces.ILEMSSimulator;
+import org.lemsml.jlems.core.api.interfaces.ILEMSStateInstance;
+import org.lemsml.jlems.core.expression.ParseError;
+import org.lemsml.jlems.core.sim.ContentError;
 import org.springframework.stereotype.Service;
 
 /**
@@ -67,43 +87,45 @@ public class JLEMSSimulatorService extends ASimulator
 	public void initialize(IModel model, ISimulatorCallbackListener listener) throws GeppettoInitializationException
 	{
 		super.initialize(model, listener);
-		// try
-		// {
-		// ILEMSBuilder builder = new LEMSBuilder();
-		//
-		// builder.addDocument((ILEMSDocument) ((ModelWrapper) model).getModel("lems"));
-		//
-		// ILEMSBuildOptions options = new LEMSBuildOptions();
-		// options.addBuildOption(LEMSBuildOptionsEnum.FLATTEN);
+		try
+		{
+			ILEMSBuilder builder = new LEMSBuilder();
+			ILEMSDocument lemsDocument = (ILEMSDocument) ((ModelWrapper) model).getModel("lems");
 
-		// ILEMSBuildConfiguration config = new LEMSBuildConfiguration("net1");
-		//
-		// Collection<ILEMSStateInstance> stateInstances = builder.build(config, options);
-		//
-		// ILEMSRunConfiguration runConfig = new LEMSRunConfiguration(0.00005d, 0.08d);
+			builder.addDocument(lemsDocument);
 
-		// IStateIdentifier tsince = new StateIdentifier("p1[0]/tsince");
-		// IStateIdentifier p3v = new StateIdentifier("p3[0]/v");
-		// IStateIdentifier hhpopv = new StateIdentifier("hhpop[0]/v");
-		//
-		// runConfig.addStateRecord(new StateRecord(tsince));
-		// runConfig.addStateRecord(new StateRecord(p3v));
-		// runConfig.addStateRecord(new StateRecord(hhpopv));
+			ILEMSBuildOptions options = new LEMSBuildOptions();
+			options.addBuildOption(LEMSBuildOptionsEnum.FLATTEN);
 
-		// _simulator = new LEMSSimulator();
-		// for(ILEMSStateInstance instance : stateInstances)
-		// {
-		// _simulator.initialize(instance, runConfig);
-		// }
-		// }
-		// catch(LEMSBuildException e)
-		// {
-		// throw new GeppettoInitializationException(e);
-		// }
-		// catch(LEMSExecutionException e)
-		// {
-		// throw new GeppettoInitializationException(e);
-		// }
+			ILEMSBuildConfiguration config = new LEMSBuildConfiguration();
+			builder.build(config, options); //pre-build to read the run configuration and target from the file
+
+			ILEMSRunConfiguration runConfig = LEMSDocumentReader.getLEMSRunConfiguration(lemsDocument);
+			config= new LEMSBuildConfiguration(LEMSDocumentReader.getTarget(lemsDocument));
+			Collection<ILEMSStateInstance> stateInstances = builder.build(config, options); //real build for our specific target
+			
+			_simulator = new LEMSSimulator();
+			for(ILEMSStateInstance instance : stateInstances)
+			{
+				_simulator.initialize(instance, runConfig);
+			}
+		}
+		catch(LEMSBuildException e)
+		{
+			throw new GeppettoInitializationException(e);
+		}
+		catch(LEMSExecutionException e)
+		{
+			throw new GeppettoInitializationException(e);
+		}
+		catch(ContentError e)
+		{
+			throw new GeppettoInitializationException(e);
+		}
+		catch(ParseError e)
+		{
+			throw new GeppettoInitializationException(e);
+		}
 		logger.info("jLEMS Simulator initialized");
 	}
 
