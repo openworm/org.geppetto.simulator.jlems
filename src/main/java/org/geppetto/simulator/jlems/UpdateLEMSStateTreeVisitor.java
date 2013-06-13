@@ -32,9 +32,12 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
-import org.geppetto.core.model.state.CompositeStateNode;
 import org.geppetto.core.model.state.SimpleStateNode;
 import org.geppetto.core.model.state.visitors.DefaultStateVisitor;
+import org.geppetto.core.model.values.DoubleValue;
+import org.lemsml.jlems.core.api.ALEMSValue;
+import org.lemsml.jlems.core.api.LEMSDoubleValue;
+import org.lemsml.jlems.core.api.StateIdentifier;
 import org.lemsml.jlems.core.api.interfaces.ILEMSResultsContainer;
 
 /**
@@ -55,23 +58,14 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 	}
 
 	@Override
-	public boolean inCompositeStateNode(CompositeStateNode node)
-	{
-
-		return super.inCompositeStateNode(node);
-	}
-
-	@Override
-	public boolean outCompositeStateNode(CompositeStateNode node)
-	{
-
-		return super.outCompositeStateNode(node);
-	}
-
-	@Override
 	public boolean visitSimpleStateNode(SimpleStateNode node)
 	{
-
+		StateIdentifier stateId=new StateIdentifier(node.getFullName().replace(".", "/"));
+		ALEMSValue lemsValue=_lemsResults.getStateValue(stateId, _lemsResults.getStates().get(stateId).size()-1);
+		if(lemsValue instanceof LEMSDoubleValue)
+		{
+			node.addValue(new DoubleValue(((LEMSDoubleValue)lemsValue).getAsDouble()));
+		}
 		return super.visitSimpleStateNode(node);
 	}
 

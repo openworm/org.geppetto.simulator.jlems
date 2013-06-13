@@ -4,6 +4,7 @@
 	<groupId>org.geppetto</groupId>
 	<artifactId>simulator.jlems</artifactId>
 	<version>0.0.1</version>
+	<name>Geppetto jLEMS Simulator Bundle</name>
 	<packaging>bundle</packaging>
 	<properties>
 		<spring.version>3.0.0.RELEASE</spring.version>
@@ -81,6 +82,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -100,6 +102,10 @@
 					<instructions>
 						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-Version>${project.version}</Bundle-Version>
+						<Bundle-ClassPath>.,{maven-dependencies}</Bundle-ClassPath>
+						<Include-Resource>
+							{maven-resources},META-INF/spring=src/main/java/META-INF/spring
+						</Include-Resource>
 					</instructions>
 				</configuration>
 			</plugin>
