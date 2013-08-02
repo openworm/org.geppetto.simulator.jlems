@@ -1,12 +1,12 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1372709910300
+Bnd-LastModified: 1375462377556
 Build-Jdk: 1.7.0_21
 Built-By: matteocantarelli
 Bundle-ClassPath: .
 Bundle-ManifestVersion: 2
 Bundle-Name: Geppetto jLEMS Simulator Bundle
 Bundle-SymbolicName: org.geppetto.simulator.jlems
-Bundle-Version: 0.0.1
+Bundle-Version: 0.0.3
 Created-By: Apache Maven Bundle Plugin
 Export-Package: org.geppetto.simulator.jlems;uses:="org.geppetto.core.mo
  del.values,org.apache.commons.logging,org.geppetto.core.model.state.vis
