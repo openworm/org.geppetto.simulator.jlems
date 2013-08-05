@@ -117,7 +117,8 @@ public class JLEMSSimulatorService extends ASimulator
 			{
 				_simulator.initialize(instance, runConfig);
 			}
-
+			ILEMSResultsContainer results = new LEMSResultsContainer();
+			getListener().stateTreeUpdated(getGeppettoStateTree(results));
 		}
 		catch(LEMSBuildException e)
 		{
