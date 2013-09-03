@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.geppetto</groupId>
 	<artifactId>simulator.jlems</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4</version>
 	<name>Geppetto jLEMS Simulator Bundle</name>
 	<packaging>bundle</packaging>
 	<properties>
@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>org.lemsml</groupId>
 			<artifactId>jlems</artifactId>
-			<version>0.9.3</version>
+			<version>0.9.5.2</version>
 		</dependency>
 	</dependencies>
 	<repositories>
