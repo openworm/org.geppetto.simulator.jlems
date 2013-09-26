@@ -1,18 +1,18 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1375462377556
+Bnd-LastModified: 1379334724116
 Build-Jdk: 1.7.0_21
 Built-By: matteocantarelli
 Bundle-ClassPath: .
 Bundle-ManifestVersion: 2
 Bundle-Name: Geppetto jLEMS Simulator Bundle
 Bundle-SymbolicName: org.geppetto.simulator.jlems
-Bundle-Version: 0.0.3
+Bundle-Version: 0.0.4
 Created-By: Apache Maven Bundle Plugin
 Export-Package: org.geppetto.simulator.jlems;uses:="org.geppetto.core.mo
  del.values,org.apache.commons.logging,org.geppetto.core.model.state.vis
  itors,org.geppetto.core.model.state,org.lemsml.jlems.core.expression,or
- g.geppetto.core.simulator,org.lemsml.jlems.core.sim,org.geppetto.core.s
- imulation,org.geppetto.core.model,org.lemsml.jlems.core.api.interfaces,
+ g.geppetto.core.simulator,org.lemsml.jlems.core.sim,org.geppetto.core.m
+ odel,org.geppetto.core.simulation,org.lemsml.jlems.core.api.interfaces,
  org.lemsml.jlems.core.api,org.geppetto.core.common,org.springframework.
  stereotype";version="0.0.1"
 Import-Package: org.apache.commons.logging;version="[1.1,2)",org.geppett

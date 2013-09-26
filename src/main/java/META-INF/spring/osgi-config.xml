@@ -13,4 +13,9 @@
 			<entry key="discoverableID" value="jLemsSimulator" />
 		</osgi:service-properties>
 	</osgi:service>
+	<osgi:service id="NeuroMLSolverExporter" ref="neuroMLSimulatorService" interface="org.geppetto.core.simulator.ISimulator">
+		<osgi:service-properties>
+			<entry key="discoverableID" value="neuroMLSimulator" />
+		</osgi:service-properties>
+	</osgi:service>
 </beans>
