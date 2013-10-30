@@ -34,6 +34,7 @@ package org.geppetto.simulator.jlems;
 
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
+import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.state.StateTreeRoot;
 import org.geppetto.core.simulation.IRunConfiguration;
@@ -61,6 +62,18 @@ public class NeuroMLSimulatorService extends ASimulator
 	{
 		// Do nothing
 		
+	}
+
+	@Override
+	public VariableList getForceableVariables()
+	{
+		return new VariableList();
+	}
+
+	@Override
+	public VariableList getWatchableVariables()
+	{
+		return new VariableList();
 	}
 
 	
