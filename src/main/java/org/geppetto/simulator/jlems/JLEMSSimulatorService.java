@@ -33,14 +33,23 @@
 package org.geppetto.simulator.jlems;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.geppetto.core.common.ArrayUtils;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
+import org.geppetto.core.data.model.AVariable;
+import org.geppetto.core.data.model.ArrayVariable;
+import org.geppetto.core.data.model.SimpleType;
+import org.geppetto.core.data.model.SimpleType.Type;
+import org.geppetto.core.data.model.StructuredType;
+import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
+import org.geppetto.core.model.data.DataModelFactory;
 import org.geppetto.core.model.state.AStateNode;
 import org.geppetto.core.model.state.CompositeStateNode;
 import org.geppetto.core.model.state.SimpleStateNode;
@@ -69,6 +78,7 @@ import org.lemsml.jlems.core.api.interfaces.ILEMSRunConfiguration;
 import org.lemsml.jlems.core.api.interfaces.ILEMSSimulator;
 import org.lemsml.jlems.core.api.interfaces.ILEMSStateInstance;
 import org.lemsml.jlems.core.api.interfaces.IStateIdentifier;
+import org.lemsml.jlems.core.api.interfaces.IStateRecord;
 import org.lemsml.jlems.core.expression.ParseError;
 import org.lemsml.jlems.core.sim.ContentError;
 import org.springframework.stereotype.Service;
@@ -85,6 +95,7 @@ public class JLEMSSimulatorService extends ASimulator
 	private ILEMSSimulator _simulator = null;
 	private StateTreeRoot _stateTree = null;
 	private int _step = 0;
+	private ILEMSRunConfiguration _runConfig;
 
 	/*
 	 * (non-Javadoc)
@@ -108,14 +119,14 @@ public class JLEMSSimulatorService extends ASimulator
 			ILEMSBuildConfiguration config = new LEMSBuildConfiguration();
 			builder.build(config, options); // pre-build to read the run configuration and target from the file
 
-			ILEMSRunConfiguration runConfig = LEMSDocumentReader.getLEMSRunConfiguration(lemsDocument);
+			_runConfig = LEMSDocumentReader.getLEMSRunConfiguration(lemsDocument);
 			config = new LEMSBuildConfiguration(LEMSDocumentReader.getTarget(lemsDocument));
 			Collection<ILEMSStateInstance> stateInstances = builder.build(config, options); // real build for our specific target
 
 			_simulator = new LEMSSimulator();
 			for(ILEMSStateInstance instance : stateInstances)
 			{
-				_simulator.initialize(instance, runConfig);
+				_simulator.initialize(instance, _runConfig);
 			}
 			ILEMSResultsContainer results = new LEMSResultsContainer();
 			getListener().stateTreeUpdated(getGeppettoStateTree(results));
@@ -139,6 +150,16 @@ public class JLEMSSimulatorService extends ASimulator
 		logger.info("jLEMS Simulator initialized");
 	}
 
+	public ILEMSRunConfiguration getRunConfig()
+	{
+		return _runConfig;
+	}
+
+	public void setRunConfig(ILEMSRunConfiguration runConfig)
+	{
+		this._runConfig = runConfig;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -158,7 +179,7 @@ public class JLEMSSimulatorService extends ASimulator
 			throw new GeppettoExecutionException(e);
 		}
 		getListener().stateTreeUpdated(getGeppettoStateTree(results));
-		//For Debugging purposes
+		// For Debugging purposes
 		// if(_step==50)
 		// {
 		// int x=0;
@@ -238,6 +259,98 @@ public class JLEMSSimulatorService extends ASimulator
 			_stateTree.apply(updateStateTreeVisitor);
 		}
 		return _stateTree;
+	}
+
+	@Override
+	public VariableList getForceableVariables()
+	{
+		return new VariableList();
+	}
+
+	@Override
+	public VariableList getWatchableVariables()
+	{
+		VariableList vl = new VariableList();
+		SimpleType floatType = DataModelFactory.getSimpleType(Type.FLOAT);
+
+		for(IStateRecord state : _runConfig.getRecordedStates())
+		{
+			List<AVariable> listToCheck = vl.getVariables();
+			StringTokenizer stok = new StringTokenizer(state.getState().getStatePath(), "/");
+
+			while(stok.hasMoreTokens())
+			{
+				String s = stok.nextToken();
+				String searchVar = s;
+
+				if(ArrayUtils.isArray(s))
+				{
+					searchVar = ArrayUtils.getArrayName(s);
+				}
+
+				AVariable v = getVariable(searchVar, listToCheck);
+
+				if(v == null)
+				{
+					if(stok.hasMoreTokens())
+					{
+						StructuredType structuredType = new StructuredType();
+						structuredType.setName(searchVar + "T");
+
+						if(ArrayUtils.isArray(s))
+						{
+							v = DataModelFactory.getArrayVariable(searchVar, structuredType, ArrayUtils.getArrayIndex(s) + 1);
+						}
+						else
+						{
+							v = DataModelFactory.getSimpleVariable(searchVar, structuredType);
+						}
+						listToCheck.add(v);
+						listToCheck = structuredType.getVariables();
+					}
+					else
+					{
+						if(ArrayUtils.isArray(s))
+						{
+							v = DataModelFactory.getArrayVariable(searchVar, floatType, ArrayUtils.getArrayIndex(s) + 1);
+						}
+						else
+						{
+							v = DataModelFactory.getSimpleVariable(searchVar, floatType);
+						}
+						listToCheck.add(v);
+					}
+				}
+				else
+				{
+					if(stok.hasMoreTokens())
+					{
+						listToCheck = ((StructuredType) v.getType()).getVariables();
+						if(ArrayUtils.isArray(s))
+						{
+							if(ArrayUtils.getArrayIndex(s) + 1 > ((ArrayVariable) v).getSize())
+							{
+								((ArrayVariable) v).setSize(ArrayUtils.getArrayIndex(s) + 1);
+							}
+						}
+					}
+				}
+			}
+		}
+		return vl;
+	}
+
+	private AVariable getVariable(String s, List<AVariable> list)
+	{
+		String searchVar = s;
+		for(AVariable v : list)
+		{
+			if(v.getName().equals(searchVar))
+			{
+				return v;
+			}
+		}
+		return null;
 	}
 
 }
