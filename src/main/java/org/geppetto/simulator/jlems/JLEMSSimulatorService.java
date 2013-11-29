@@ -353,4 +353,28 @@ public class JLEMSSimulatorService extends ASimulator
 		return null;
 	}
 
+	@Override
+	public void addWatchVariables(List<String> variableNames) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void startWatch() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void stopWatch() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void clearWatchVariables() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
