@@ -32,6 +32,8 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
+import java.util.List;
+
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.data.model.VariableList;
@@ -86,6 +88,28 @@ public class NeuroMLSimulatorService extends ASimulator
 	public String getName() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public void addWatchVariables(List<String> variableNames) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void startWatch() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void stopWatch() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void clearWatchVariables() {
+		// TODO Auto-generated method stub		
 	}
 
 	
