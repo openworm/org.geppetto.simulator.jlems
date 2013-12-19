@@ -46,7 +46,6 @@ import org.geppetto.core.data.model.ArrayVariable;
 import org.geppetto.core.data.model.SimpleType;
 import org.geppetto.core.data.model.SimpleType.Type;
 import org.geppetto.core.data.model.StructuredType;
-import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.data.DataModelFactory;
@@ -54,6 +53,7 @@ import org.geppetto.core.model.state.AStateNode;
 import org.geppetto.core.model.state.CompositeStateNode;
 import org.geppetto.core.model.state.SimpleStateNode;
 import org.geppetto.core.model.state.StateTreeRoot;
+import org.geppetto.core.model.state.StateTreeRoot.SUBTREE;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
@@ -91,10 +91,8 @@ import org.springframework.stereotype.Service;
 public class JLEMSSimulatorService extends ASimulator
 {
 
-	private static Log logger = LogFactory.getLog(JLEMSSimulatorService.class);
+	private static Log _logger = LogFactory.getLog(JLEMSSimulatorService.class);
 	private ILEMSSimulator _simulator = null;
-	private StateTreeRoot _stateTree = null;
-	private int _step = 0;
 	private ILEMSRunConfiguration _runConfig;
 
 	/*
@@ -128,8 +126,9 @@ public class JLEMSSimulatorService extends ASimulator
 			{
 				_simulator.initialize(instance, _runConfig);
 			}
+			setWatchableVariables();
 			ILEMSResultsContainer results = new LEMSResultsContainer();
-			getListener().stateTreeUpdated(getGeppettoStateTree(results));
+			getListener().stateTreeUpdated(populateStateTree(results));
 		}
 		catch(LEMSBuildException e)
 		{
@@ -147,7 +146,7 @@ public class JLEMSSimulatorService extends ASimulator
 		{
 			throw new GeppettoInitializationException(e);
 		}
-		logger.info("jLEMS Simulator initialized");
+		_logger.info("jLEMS Simulator initialized");
 	}
 
 	public ILEMSRunConfiguration getRunConfig()
@@ -172,13 +171,12 @@ public class JLEMSSimulatorService extends ASimulator
 		try
 		{
 			_simulator.advance(results);
-			_step++;
 		}
 		catch(LEMSExecutionException e)
 		{
 			throw new GeppettoExecutionException(e);
 		}
-		getListener().stateTreeUpdated(getGeppettoStateTree(results));
+		getListener().stateTreeUpdated(populateStateTree(results));
 		// For Debugging purposes
 		// if(_step==50)
 		// {
@@ -196,86 +194,92 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @param results
 	 * @return
 	 */
-	private StateTreeRoot getGeppettoStateTree(ILEMSResultsContainer results)
+	private StateTreeRoot populateStateTree(ILEMSResultsContainer results)
 	{
+
 		if(_stateTree == null)
 		{
 			_stateTree = new StateTreeRoot(_model.getId());
 		}
-		if(_stateTree.getChildren().isEmpty())
+		if(isWatching())
 		{
-			for(IStateIdentifier state : results.getStates().keySet())
+			CompositeStateNode watchTree=_stateTree.getSubTree(SUBTREE.WATCH_TREE);
+			if(watchTree.getChildren().isEmpty() || watchListModified())
 			{
-				// for every state found in the results add a node in the tree
-				StringTokenizer tokenizer = new StringTokenizer(state.getStatePath(), "/");
-				CompositeStateNode node = _stateTree;
-				while(tokenizer.hasMoreElements())
+				watchListModified(false);
+				for(IStateIdentifier state : results.getStates().keySet())
 				{
-					String current = tokenizer.nextToken();
-					boolean found = false;
-					for(AStateNode child : node.getChildren())
+					// for every state found in the results add a node in the tree
+					if(getWatchList().contains(state.getStatePath().replace("/", ".")))
 					{
-						if(child.getName().equals(current))
+						StringTokenizer tokenizer = new StringTokenizer(state.getStatePath(), "/");
+						CompositeStateNode node = watchTree;
+						while(tokenizer.hasMoreElements())
 						{
-							if(child instanceof CompositeStateNode)
+							String current = tokenizer.nextToken();
+							boolean found = false;
+							for(AStateNode child : node.getChildren())
 							{
-								node = (CompositeStateNode) child;
+								if(child.getName().equals(current))
+								{
+									if(child instanceof CompositeStateNode)
+									{
+										node = (CompositeStateNode) child;
+									}
+									found = true;
+									break;
+								}
 							}
-							found = true;
-							break;
-						}
-					}
-					if(found)
-					{
-						continue;
-					}
-					else
-					{
-						if(tokenizer.hasMoreElements())
-						{
-							// not a leaf, create a composite state node
-							CompositeStateNode newNode = new CompositeStateNode(current);
-							node.addChild(newNode);
-							node = newNode;
-						}
-						else
-						{
-							// it's a leaf node
-							SimpleStateNode newNode = new SimpleStateNode(current);
-							ALEMSValue lemsValue = results.getStates().get(state).get(results.getStates().get(state).size() - 1);
-							if(lemsValue instanceof LEMSDoubleValue)
+							if(found)
 							{
-								newNode.addValue(ValuesFactory.getDoubleValue(((LEMSDoubleValue) lemsValue).getAsDouble()));
+								continue;
 							}
-							node.addChild(newNode);
+							else
+							{
+								if(tokenizer.hasMoreElements())
+								{
+									// not a leaf, create a composite state node
+									CompositeStateNode newNode = new CompositeStateNode(current);
+									node.addChild(newNode);
+									node = newNode;
+								}
+								else
+								{
+									// it's a leaf node
+									SimpleStateNode newNode = new SimpleStateNode(current);
+									ALEMSValue lemsValue = results.getStates().get(state).get(results.getStates().get(state).size() - 1);
+									if(lemsValue instanceof LEMSDoubleValue)
+									{
+										newNode.addValue(ValuesFactory.getDoubleValue(((LEMSDoubleValue) lemsValue).getAsDouble()));
+									}
+									node.addChild(newNode);
+								}
+							}
 						}
 					}
 				}
 			}
-		}
-		else
-		{
-			UpdateLEMSStateTreeVisitor updateStateTreeVisitor = new UpdateLEMSStateTreeVisitor(results);
-			_stateTree.apply(updateStateTreeVisitor);
+			else
+			{
+				UpdateLEMSStateTreeVisitor updateStateTreeVisitor = new UpdateLEMSStateTreeVisitor(results);
+				watchTree.apply(updateStateTreeVisitor);
+			}
 		}
 		return _stateTree;
 	}
 
-	@Override
-	public VariableList getForceableVariables()
-	{
-		return new VariableList();
-	}
 
-	@Override
-	public VariableList getWatchableVariables()
+	/**
+	 * 
+	 */
+	public void setWatchableVariables()
 	{
-		VariableList vl = new VariableList();
+
 		SimpleType floatType = DataModelFactory.getSimpleType(Type.FLOAT);
 
 		for(IStateRecord state : _runConfig.getRecordedStates())
 		{
-			List<AVariable> listToCheck = vl.getVariables();
+			List<AVariable> listToCheck = getWatchableVariables().getVariables();
 			StringTokenizer stok = new StringTokenizer(state.getState().getStatePath(), "/");
 
 			while(stok.hasMoreTokens())
@@ -337,7 +341,6 @@ public class JLEMSSimulatorService extends ASimulator
 				}
 			}
 		}
-		return vl;
 	}
 
 	private AVariable getVariable(String s, List<AVariable> list)

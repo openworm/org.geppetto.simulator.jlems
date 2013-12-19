@@ -32,13 +32,20 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems.test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import junit.framework.Assert;
 
+import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.data.model.SimpleType;
 import org.geppetto.core.data.model.SimpleVariable;
 import org.geppetto.core.data.model.StructuredType;
 import org.geppetto.core.data.model.VariableList;
+import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.data.DataModelFactory;
+import org.geppetto.core.model.state.StateTreeRoot;
+import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.junit.Test;
 import org.lemsml.jlems.core.api.LEMSRunConfiguration;
@@ -46,7 +53,6 @@ import org.lemsml.jlems.core.api.StateIdentifier;
 import org.lemsml.jlems.core.api.StateRecord;
 import org.lemsml.jlems.core.api.interfaces.ILEMSRunConfiguration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -64,6 +70,10 @@ public class JLEMSSimulatorServiceTest
 		_runConfig.addStateRecord(new StateRecord(new StateIdentifier("hhpop[0]/bioPhys1/membraneProperties/naChans/na/h/q")));
 		_runConfig.addStateRecord(new StateRecord(new StateIdentifier("hhpop[0]/bioPhys1/membraneProperties/kChans/k/n/q")));
 		_runConfig.addStateRecord(new StateRecord(new StateIdentifier("hhpop[0]/v")));
+		
+		
+		
+		
 		// _runConfig.getRecordedStates().add(new StateRecord(new StateIdentifier("hhpop[0]/spiking")));
 		// _runConfig.getRecordedStates().add(new StateRecord(new StateIdentifier("hhpop[0]/debugVal")));
 		// _runConfig.getRecordedStates().add(new StateRecord(new StateIdentifier("hhpop[0]/bioPhys1/membraneProperties/naChans/iDensity")));
@@ -72,6 +82,23 @@ public class JLEMSSimulatorServiceTest
 		// _runConfig.getRecordedStates().add(new StateRecord(new StateIdentifier("hhpop[0]/bioPhys1/membraneProperties/kChans/gDensity")));
 	}
 
+	//FIXME: This test will require integrated tests since it would have to use the model interpreter
+	//	@Test
+	//	public void testWatchVariables() throws Exception
+	//	{
+	//		setup();
+	//		JLEMSSimulatorService simulator = new JLEMSSimulatorService();
+	//		
+	//
+	//		List<String> watchList=new ArrayList<String>();
+	//		watchList.add("hhpop[0].bioPhys1.membraneProperties.naChans.na.m.q");
+	//		watchList.add("hhpop[0].bioPhys1.membraneProperties.naChans.na.h.q");
+	//		watchList.add("hhpop[0].bioPhys1.membraneProperties.kChans.k.n.q");
+	//		watchList.add("hhpop[0].v");
+	//		simulator.addWatchVariables(watchList);
+	//		simulator.startWatch();
+	//	}
+	
 	/**
 	 * Test method for {@link org.geppetto.simulator.jlems.JLEMSSimulatorService#getWatchableVariables()}.
 	 * @throws Exception 
@@ -82,7 +109,8 @@ public class JLEMSSimulatorServiceTest
 		setup();
 		JLEMSSimulatorService simulator = new JLEMSSimulatorService();
 		simulator.setRunConfig(_runConfig);
-
+		simulator.setWatchableVariables();
+		
 		SimpleType ft = DataModelFactory.getSimpleType(SimpleType.Type.FLOAT);
 
 		SimpleVariable mq = DataModelFactory.getSimpleVariable("q", ft);
