@@ -359,7 +359,7 @@ public class JLEMSSimulatorService extends ASimulator
 	@Override
 	public int getCapacity() {
 		// TODO Auto-generated method stub
-		return 0;
+		return 5;
 	}
 
 	@Override
