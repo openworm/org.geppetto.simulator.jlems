@@ -356,4 +356,16 @@ public class JLEMSSimulatorService extends ASimulator
 		return null;
 	}
 
+	@Override
+	public int getCapacity() {
+		// TODO Auto-generated method stub
+		return 5;
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

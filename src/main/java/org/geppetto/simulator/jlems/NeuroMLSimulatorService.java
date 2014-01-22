@@ -79,6 +79,17 @@ public class NeuroMLSimulatorService extends ASimulator
 	}
 
 	@Override
+	public int getCapacity() {
+		// TODO Auto-generated method stub
+		return 5;
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	public void addWatchVariables(List<String> variableNames) {
 		// TODO Auto-generated method stub
 		
@@ -98,8 +109,7 @@ public class NeuroMLSimulatorService extends ASimulator
 
 	@Override
 	public void clearWatchVariables() {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub		
 	}
 
 	
