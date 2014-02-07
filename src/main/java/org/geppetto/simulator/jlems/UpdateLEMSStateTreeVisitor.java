@@ -61,6 +61,10 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 	public boolean visitSimpleStateNode(SimpleStateNode node)
 	{
 		StateIdentifier stateId=new StateIdentifier(node.getFullName().replace(".", "/"));
+		if(!_lemsResults.getStates().containsKey(stateId))
+		{
+			throw new RuntimeException(stateId+" not found in LEMS results:"+_lemsResults.getStates());
+		}
 		ALEMSValue lemsValue=_lemsResults.getStateValue(stateId, _lemsResults.getStates().get(stateId).size()-1);
 		if(lemsValue instanceof LEMSDoubleValue)
 		{
