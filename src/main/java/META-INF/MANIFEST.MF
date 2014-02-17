@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1391623595269
+Bnd-LastModified: 1392615176078
 Build-Jdk: 1.7.0_21
 Built-By: jrmartin
 Bundle-ClassPath: .
@@ -12,23 +12,23 @@ Export-Package: org.geppetto.simulator.jlems;uses:="org.geppetto.core.mo
  del.values,org.geppetto.core.data.model,org.apache.commons.logging,org.
  geppetto.core.model.state.visitors,org.geppetto.core.model.state,org.le
  msml.jlems.core.expression,org.geppetto.core.simulator,org.geppetto.cor
- e.model.data,org.lemsml.jlems.core.sim,org.geppetto.core.model,org.gepp
- etto.core.simulation,org.lemsml.jlems.core.api.interfaces,org.lemsml.jl
+ e.model.data,org.lemsml.jlems.core.sim,org.geppetto.core.simulation,org
+ .geppetto.core.model,org.lemsml.jlems.core.api.interfaces,org.lemsml.jl
  ems.core.api,org.geppetto.core.common,org.springframework.stereotype";v
- ersion="0.0.8"
+ ersion="0.0.9"
 Import-Package: org.aopalliance.aop;version="[1.0,2)",org.apache.commons
  .logging;version="[1.1,2)",org.geppetto.core.common;version="[0.0,1)",o
  rg.geppetto.core.data.model;version="[0.0,1)",org.geppetto.core.model;v
  ersion="[0.0,1)",org.geppetto.core.model.data;version="[0.0,1)",org.gep
  petto.core.model.state;version="[0.0,1)",org.geppetto.core.model.state.
  visitors;version="[0.0,1)",org.geppetto.core.model.values;version="[0.0
- ,1)",org.geppetto.core.simulation;version="[0.0,1)",org.geppetto.core.s
- imulator;version="[0.0,1)",org.lemsml.jlems.core.api;version="[0.9,1)",
- org.lemsml.jlems.core.api.interfaces;version="[0.9,1)",org.lemsml.jlems
- .core.expression;version="[0.9,1)",org.lemsml.jlems.core.sim;version="[
- 0.9,1)",org.springframework.aop;version="[3.0,4)",org.springframework.a
- op.framework;version="[3.0,4)",org.springframework.aop.scope;version="[
- 3.0,4)",org.springframework.beans.factory.config;version="[3.0,4)",org.
- springframework.context.support;version="[3.0,4)",org.springframework.s
- tereotype;version="[3.0,4)"
+ ,1)",org.geppetto.core.scope;version="[0.0,1)",org.geppetto.core.simula
+ tion;version="[0.0,1)",org.geppetto.core.simulator;version="[0.0,1)",or
+ g.lemsml.jlems.core.api;version="[0.9,1)",org.lemsml.jlems.core.api.int
+ erfaces;version="[0.9,1)",org.lemsml.jlems.core.expression;version="[0.
+ 9,1)",org.lemsml.jlems.core.sim;version="[0.9,1)",org.springframework.a
+ op;version="[3.0,4)",org.springframework.aop.framework;version="[3.0,4)
+ ",org.springframework.aop.scope;version="[3.0,4)",org.springframework.b
+ eans.factory.config;version="[3.0,4)",org.springframework.stereotype;ve
+ rsion="[3.0,4)"
 Tool: Bnd-1.50.0

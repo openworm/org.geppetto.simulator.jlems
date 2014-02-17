@@ -16,7 +16,7 @@
 			<entry key="discoverableID" value="jLemsSimulator" />
 		</osgi:service-properties>
 	</osgi:service>
-	<bean id="JLEMSSimulatorService" scope="session" class="org.geppetto.simulator.jlems.JLEMSSimulatorService">
+	<bean id="JLEMSSimulatorService" scope="thread" class="org.geppetto.simulator.jlems.JLEMSSimulatorService">
 	<aop:scoped-proxy proxy-target-class="false"/>
 	</bean>
 	<osgi:service id="NeuroMLSolverExporter" ref="neuroMLSimulatorService" interface="org.geppetto.core.simulator.ISimulator">
@@ -24,7 +24,7 @@
 			<entry key="discoverableID" value="neuroMLSimulator" />
 		</osgi:service-properties>
 	</osgi:service>
-	<bean id="neuroMLSimulatorService" scope="session" class="org.geppetto.simulator.jlems.NeuroMLSimulatorService">
+	<bean id="neuroMLSimulatorService" scope="thread" class="org.geppetto.simulator.jlems.NeuroMLSimulatorService">
 	<aop:scoped-proxy proxy-target-class="false"/>
 	</bean>
 </beans>
