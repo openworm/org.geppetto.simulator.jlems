@@ -38,6 +38,7 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.ArrayUtils;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
@@ -81,6 +82,7 @@ import org.lemsml.jlems.core.api.interfaces.IStateIdentifier;
 import org.lemsml.jlems.core.api.interfaces.IStateRecord;
 import org.lemsml.jlems.core.expression.ParseError;
 import org.lemsml.jlems.core.sim.ContentError;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -95,6 +97,9 @@ public class JLEMSSimulatorService extends ASimulator
 	private ILEMSSimulator _simulator = null;
 	private ILEMSRunConfiguration _runConfig;
 
+	@Autowired
+	private SimulatorConfig simulatorConfig;
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -357,15 +362,7 @@ public class JLEMSSimulatorService extends ASimulator
 	}
 
 	@Override
-	public int getCapacity() {
-		// TODO Auto-generated method stub
-		return 5;
-	}
-
-	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.simulatorConfig.getSimulatorName();
 	}
-
 }

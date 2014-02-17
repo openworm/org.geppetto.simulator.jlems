@@ -34,6 +34,7 @@ package org.geppetto.simulator.jlems;
 
 import java.util.List;
 
+import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.data.model.VariableList;
@@ -42,6 +43,7 @@ import org.geppetto.core.model.state.StateTreeRoot;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -51,7 +53,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class NeuroMLSimulatorService extends ASimulator
 {
-
+	
 	@Override
 	public void initialize(IModel model, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
 	{
@@ -77,18 +79,6 @@ public class NeuroMLSimulatorService extends ASimulator
 	{
 		return new VariableList();
 	}
-
-	@Override
-	public int getCapacity() {
-		// TODO Auto-generated method stub
-		return 5;
-	}
-
-	@Override
-	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 	
 	public void addWatchVariables(List<String> variableNames) {
 		// TODO Auto-generated method stub
@@ -112,6 +102,10 @@ public class NeuroMLSimulatorService extends ASimulator
 		// TODO Auto-generated method stub		
 	}
 
-	
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
+	}	
 
 }
