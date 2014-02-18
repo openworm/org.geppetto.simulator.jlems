@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.geppetto</groupId>
 	<artifactId>simulator.jlems</artifactId>
-	<version>0.0.9</version>
+	<version>0.1.0</version>
 	<name>Geppetto jLEMS Simulator Bundle</name>
 	<packaging>bundle</packaging>
 	<properties>
@@ -11,6 +11,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
+	<dependency>
+	<groupId>cglib</groupId>
+	<artifactId>cglib</artifactId>
+	<version>2.2.2</version>
+</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>com.springsource.org.apache.commons.logging</artifactId>
@@ -47,12 +52,12 @@
 		<dependency>
 			<groupId>org.geppetto</groupId>
 			<artifactId>core</artifactId>
-			<version>0.0.9</version>
+			<version>0.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.lemsml</groupId>
 			<artifactId>jlems</artifactId>
-			<version>0.9.5.2</version>
+			<version>0.9.5.3</version>
 		</dependency>
 	</dependencies>
 	<repositories>
@@ -106,6 +111,9 @@
 						<Include-Resource>
 							{maven-resources},META-INF/spring=src/main/java/META-INF/spring
 						</Include-Resource>
+						<Import-Package>
+							org.aopalliance.aop,org.springframework.aop,,org.springframework.aop.scope,org.springframework.aop.framework,*
+						</Import-Package>
 					</instructions>
 				</configuration>
 			</plugin>
