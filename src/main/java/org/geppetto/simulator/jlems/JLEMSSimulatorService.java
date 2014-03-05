@@ -106,13 +106,14 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @see org.geppetto.core.simulator.ASimulator#initialize(org.geppetto.core.model.IModel, org.geppetto.core.simulation.ISimulatorCallbackListener)
 	 */
 	@Override
-	public void initialize(IModel model, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
+	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
 	{
-		super.initialize(model, listener);
+		super.initialize(models, listener);
 		try
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
-			ILEMSDocument lemsDocument = (ILEMSDocument) ((ModelWrapper) model).getModel("lems");
+			//TODO Refactor simulators to deal with more than one model!
+			ILEMSDocument lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel("lems");
 
 			builder.addDocument(lemsDocument);
 
@@ -204,7 +205,8 @@ public class JLEMSSimulatorService extends ASimulator
 
 		if(_stateTree == null)
 		{
-			_stateTree = new StateTreeRoot(_model.getId());
+			//TODO Refactor simulators to deal with more than one model!
+			_stateTree = new StateTreeRoot(_models.get(0).getId());
 		}
 		if(isWatching())
 		{
