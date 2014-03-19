@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.geppetto</groupId>
 	<artifactId>simulator.jlems</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<name>Geppetto jLEMS Simulator Bundle</name>
 	<packaging>bundle</packaging>
 	<properties>
@@ -52,12 +52,17 @@
 		<dependency>
 			<groupId>org.geppetto</groupId>
 			<artifactId>core</artifactId>
-			<version>0.1.0</version>
+			<version>0.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.lemsml</groupId>
 			<artifactId>jlems</artifactId>
-			<version>0.9.5.3</version>
+			<version>0.9.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.1.0</version>
 		</dependency>
 	</dependencies>
 	<repositories>
