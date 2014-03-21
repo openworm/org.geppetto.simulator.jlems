@@ -217,9 +217,10 @@ public class JLEMSSimulatorService extends ASimulator
 				for(IStateIdentifier state : results.getStates().keySet())
 				{
 					// for every state found in the results add a node in the tree
-					if(getWatchList().contains(state.getStatePath().replace("/", ".")))
+					String fullPath=_models.get(0).getInstancePath()+"."+state.getStatePath().replace("/", ".");
+					if(getWatchList().contains(fullPath))
 					{
-						StringTokenizer tokenizer = new StringTokenizer(state.getStatePath(), "/");
+						StringTokenizer tokenizer = new StringTokenizer(fullPath, ".");
 						CompositeStateNode node = watchTree;
 						while(tokenizer.hasMoreElements())
 						{
@@ -268,7 +269,7 @@ public class JLEMSSimulatorService extends ASimulator
 			}
 			else
 			{
-				UpdateLEMSStateTreeVisitor updateStateTreeVisitor = new UpdateLEMSStateTreeVisitor(results);
+				UpdateLEMSStateTreeVisitor updateStateTreeVisitor = new UpdateLEMSStateTreeVisitor(results, _models.get(0).getInstancePath());
 				watchTree.apply(updateStateTreeVisitor);
 			}
 		}

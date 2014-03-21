@@ -30,50 +30,34 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE 
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  *******************************************************************************/
-package org.geppetto.simulator.jlems;
+package org.geppetto.simulator.jlems.test;
 
-import org.geppetto.core.model.state.SimpleStateNode;
-import org.geppetto.core.model.state.visitors.DefaultStateVisitor;
-import org.geppetto.core.model.values.DoubleValue;
-import org.lemsml.jlems.core.api.ALEMSValue;
-import org.lemsml.jlems.core.api.LEMSDoubleValue;
-import org.lemsml.jlems.core.api.StateIdentifier;
-import org.lemsml.jlems.core.api.interfaces.ILEMSResultsContainer;
+import org.geppetto.core.common.GeppettoExecutionException;
+import org.geppetto.core.model.state.StateTreeRoot;
+import org.geppetto.core.simulation.ISimulatorCallbackListener;
 
 /**
  * @author matteocantarelli
- * 
- * This method updates the particles already present in the tree
- * adding new values as found on the position pointer
+ *
  */
-public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
+public class TestListener implements ISimulatorCallbackListener
 {
 
-	private ILEMSResultsContainer _lemsResults;
-	private String _instancePath;
 
-	public UpdateLEMSStateTreeVisitor(ILEMSResultsContainer lemsResults,String instancePath)
-	{
-		_lemsResults=lemsResults;
-		_instancePath=instancePath;
-
-	}
+	private StateTreeRoot tree = null;
 
 	@Override
-	public boolean visitSimpleStateNode(SimpleStateNode node)
+	public void stateTreeUpdated(StateTreeRoot stateTree) throws GeppettoExecutionException
 	{
-		String lemsState=node.getFullName().replace(_instancePath, "").replace(".", "/");
-		StateIdentifier stateId=new StateIdentifier(lemsState);
-		if(!_lemsResults.getStates().containsKey(stateId))
+		if(tree == null)
 		{
-			throw new RuntimeException(stateId+" not found in LEMS results:"+_lemsResults.getStates());
+			tree = stateTree;
 		}
-		ALEMSValue lemsValue=_lemsResults.getStateValue(stateId, _lemsResults.getStates().get(stateId).size()-1);
-		if(lemsValue instanceof LEMSDoubleValue)
-		{
-			node.addValue(new DoubleValue(((LEMSDoubleValue)lemsValue).getAsDouble()));
-		}
-		return super.visitSimpleStateNode(node);
+	}
+	
+	public StateTreeRoot getTree()
+	{
+		return tree;
 	}
 
 }
