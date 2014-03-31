@@ -51,22 +51,22 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 
 	private ILEMSResultsContainer _lemsResults;
 	private String _instancePath;
+	private String _errorMessage=null;
 
 	public UpdateLEMSStateTreeVisitor(ILEMSResultsContainer lemsResults,String instancePath)
 	{
 		_lemsResults=lemsResults;
 		_instancePath=instancePath;
-
 	}
 
 	@Override
 	public boolean visitSimpleStateNode(SimpleStateNode node)
 	{
-		String lemsState=node.getFullName().replace(_instancePath, "").replace(".", "/");
+		String lemsState=node.getFullName().replace(_instancePath+".", "").replace(".", "/");
 		StateIdentifier stateId=new StateIdentifier(lemsState);
 		if(!_lemsResults.getStates().containsKey(stateId))
 		{
-			throw new RuntimeException(stateId+" not found in LEMS results:"+_lemsResults.getStates());
+			_errorMessage=stateId+" not found in LEMS results:"+_lemsResults.getStates();
 		}
 		ALEMSValue lemsValue=_lemsResults.getStateValue(stateId, _lemsResults.getStates().get(stateId).size()-1);
 		if(lemsValue instanceof LEMSDoubleValue)
@@ -76,4 +76,11 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 		return super.visitSimpleStateNode(node);
 	}
 
+	/**
+	 * @return
+	 */
+	public String getError()
+	{
+		return _errorMessage;
+	}
 }
