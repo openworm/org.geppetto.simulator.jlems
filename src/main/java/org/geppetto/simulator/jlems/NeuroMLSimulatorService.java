@@ -57,12 +57,15 @@ public class NeuroMLSimulatorService extends ASimulator
 	{
 		super.initialize(models, listener);
 		//TODO Refactor simulators to deal with more than one model!
-		getListener().stateTreeUpdated(new StateTreeRoot(models.get(0).getId()));
+		_stateTree=new StateTreeRoot(models.get(0).getId());
+		getListener().stateTreeUpdated(_stateTree);
+		advanceTimeStep(0);
 	}
 
 	@Override
 	public void simulate(IRunConfiguration arg0) throws GeppettoExecutionException
 	{
+		advanceTimeStep(0);
 		// Do nothing
 		
 	}
