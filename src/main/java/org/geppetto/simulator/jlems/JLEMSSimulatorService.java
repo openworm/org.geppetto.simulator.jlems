@@ -183,18 +183,9 @@ public class JLEMSSimulatorService extends ASimulator
 		{
 			throw new GeppettoExecutionException(e);
 		}
-		getListener().stateTreeUpdated(populateStateTree(results));
-		// For Debugging purposes
-		// if(_step==50)
-		// {
-		// int x=0;
-		// for(ALEMSValue value:results.getStateValues(new StateIdentifier("hhpop[0]/v")))
-		// {
-		// LEMSDoubleValue dv=(LEMSDoubleValue) value;
-		// logger.error("X:"+x*0.01+" Y:"+dv.getAsDouble());
-		// x++;
-		// }
-		// }
+		
+		populateStateTree(results);
+		notifyStateTreeUpdated();
 	}
 
 	/**
@@ -313,7 +304,7 @@ public class JLEMSSimulatorService extends ASimulator
 					searchVar = ArrayUtils.getArrayName(s);
 				}
 
-				AVariable v = getVariable(searchVar, listToCheck);
+				AVariable v = ASimulator.getVariable(searchVar, listToCheck);
 
 				if(v == null)
 				{
@@ -364,18 +355,7 @@ public class JLEMSSimulatorService extends ASimulator
 		}
 	}
 
-	private AVariable getVariable(String s, List<AVariable> list)
-	{
-		String searchVar = s;
-		for(AVariable v : list)
-		{
-			if(v.getName().equals(searchVar))
-			{
-				return v;
-			}
-		}
-		return null;
-	}
+
 
 	@Override
 	public String getName()
