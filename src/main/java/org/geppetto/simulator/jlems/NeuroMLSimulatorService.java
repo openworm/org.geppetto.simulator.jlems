@@ -34,7 +34,6 @@ package org.geppetto.simulator.jlems;
 
 import java.util.List;
 
-import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.data.model.VariableList;
@@ -43,7 +42,6 @@ import org.geppetto.core.model.state.StateTreeRoot;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -55,15 +53,19 @@ public class NeuroMLSimulatorService extends ASimulator
 {
 	
 	@Override
-	public void initialize(IModel model, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
+	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
 	{
-		super.initialize(model, listener);
-		getListener().stateTreeUpdated(new StateTreeRoot(model.getId()));
+		super.initialize(models, listener);
+		//TODO Refactor simulators to deal with more than one model!
+		_stateTree=new StateTreeRoot(models.get(0).getId());
+		getListener().stateTreeUpdated(_stateTree);
+		advanceTimeStep(0);
 	}
 
 	@Override
 	public void simulate(IRunConfiguration arg0) throws GeppettoExecutionException
 	{
+		advanceTimeStep(0);
 		// Do nothing
 		
 	}

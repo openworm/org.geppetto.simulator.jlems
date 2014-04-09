@@ -99,20 +99,22 @@ public class JLEMSSimulatorService extends ASimulator
 
 	@Autowired
 	private SimulatorConfig simulatorConfig;
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.geppetto.core.simulator.ASimulator#initialize(org.geppetto.core.model.IModel, org.geppetto.core.simulation.ISimulatorCallbackListener)
 	 */
 	@Override
-	public void initialize(IModel model, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
+	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
 	{
-		super.initialize(model, listener);
+		super.initialize(models, listener);
+		setTimeStepUnit("s");
 		try
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
-			ILEMSDocument lemsDocument = (ILEMSDocument) ((ModelWrapper) model).getModel("lems");
+			// TODO Refactor simulators to deal with more than one model!
+			ILEMSDocument lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel("lems");
 
 			builder.addDocument(lemsDocument);
 
@@ -181,98 +183,103 @@ public class JLEMSSimulatorService extends ASimulator
 		{
 			throw new GeppettoExecutionException(e);
 		}
-		getListener().stateTreeUpdated(populateStateTree(results));
-		// For Debugging purposes
-		// if(_step==50)
-		// {
-		// int x=0;
-		// for(ALEMSValue value:results.getStateValues(new StateIdentifier("hhpop[0]/v")))
-		// {
-		// LEMSDoubleValue dv=(LEMSDoubleValue) value;
-		// logger.error("X:"+x*0.01+" Y:"+dv.getAsDouble());
-		// x++;
-		// }
-		// }
+		
+		populateStateTree(results);
+		notifyStateTreeUpdated();
 	}
 
 	/**
 	 * @param results
 	 * @return
+	 * @throws GeppettoExecutionException
 	 */
-	private StateTreeRoot populateStateTree(ILEMSResultsContainer results)
+	private StateTreeRoot populateStateTree(ILEMSResultsContainer results) throws GeppettoExecutionException
 	{
 
 		if(_stateTree == null)
 		{
-			_stateTree = new StateTreeRoot(_model.getId());
+			// TODO Refactor simulators to deal with more than one model!
+			_stateTree = new StateTreeRoot(_models.get(0).getId());
 		}
-		if(isWatching())
+		try
 		{
-			CompositeStateNode watchTree=_stateTree.getSubTree(SUBTREE.WATCH_TREE);
-			if(watchTree.getChildren().isEmpty() || watchListModified())
+			advanceTimeStep(_runConfig.getTimestep());
+			if(isWatching())
 			{
-				watchListModified(false);
-				for(IStateIdentifier state : results.getStates().keySet())
+				CompositeStateNode watchTree = _stateTree.getSubTree(SUBTREE.WATCH_TREE);
+				if(watchTree.getChildren().isEmpty() || watchListModified())
 				{
-					// for every state found in the results add a node in the tree
-					if(getWatchList().contains(state.getStatePath().replace("/", ".")))
+					watchListModified(false);
+					for(IStateIdentifier state : results.getStates().keySet())
 					{
-						StringTokenizer tokenizer = new StringTokenizer(state.getStatePath(), "/");
-						CompositeStateNode node = watchTree;
-						while(tokenizer.hasMoreElements())
+						// for every state found in the results add a node in the tree
+						String fullPath = _models.get(0).getInstancePath() + "." + state.getStatePath().replace("/", ".");
+						if(getWatchList().contains(fullPath))
 						{
-							String current = tokenizer.nextToken();
-							boolean found = false;
-							for(AStateNode child : node.getChildren())
+							StringTokenizer tokenizer = new StringTokenizer(fullPath, ".");
+							CompositeStateNode node = watchTree;
+							while(tokenizer.hasMoreElements())
 							{
-								if(child.getName().equals(current))
+								String current = tokenizer.nextToken();
+								boolean found = false;
+								for(AStateNode child : node.getChildren())
 								{
-									if(child instanceof CompositeStateNode)
+									if(child.getName().equals(current))
 									{
-										node = (CompositeStateNode) child;
+										if(child instanceof CompositeStateNode)
+										{
+											node = (CompositeStateNode) child;
+										}
+										found = true;
+										break;
 									}
-									found = true;
-									break;
 								}
-							}
-							if(found)
-							{
-								continue;
-							}
-							else
-							{
-								if(tokenizer.hasMoreElements())
+								if(found)
 								{
-									// not a leaf, create a composite state node
-									CompositeStateNode newNode = new CompositeStateNode(current);
-									node.addChild(newNode);
-									node = newNode;
+									continue;
 								}
 								else
 								{
-									// it's a leaf node
-									SimpleStateNode newNode = new SimpleStateNode(current);
-									ALEMSValue lemsValue = results.getStates().get(state).get(results.getStates().get(state).size() - 1);
-									if(lemsValue instanceof LEMSDoubleValue)
+									if(tokenizer.hasMoreElements())
 									{
-										newNode.addValue(ValuesFactory.getDoubleValue(((LEMSDoubleValue) lemsValue).getAsDouble()));
+										// not a leaf, create a composite state node
+										CompositeStateNode newNode = new CompositeStateNode(current);
+										node.addChild(newNode);
+										node = newNode;
 									}
-									node.addChild(newNode);
+									else
+									{
+										// it's a leaf node
+										SimpleStateNode newNode = new SimpleStateNode(current);
+										ALEMSValue lemsValue = results.getStates().get(state).get(results.getStates().get(state).size() - 1);
+										if(lemsValue instanceof LEMSDoubleValue)
+										{
+											newNode.addValue(ValuesFactory.getDoubleValue(((LEMSDoubleValue) lemsValue).getAsDouble()));
+										}
+										node.addChild(newNode);
+									}
 								}
 							}
 						}
 					}
 				}
+				else
+				{
+					UpdateLEMSStateTreeVisitor updateStateTreeVisitor = new UpdateLEMSStateTreeVisitor(results, _models.get(0).getInstancePath());
+					watchTree.apply(updateStateTreeVisitor);
+					if(updateStateTreeVisitor.getError() != null)
+					{
+						throw new GeppettoExecutionException(updateStateTreeVisitor.getError());
+					}
+				}
 			}
-			else
-			{
-				UpdateLEMSStateTreeVisitor updateStateTreeVisitor = new UpdateLEMSStateTreeVisitor(results);
-				watchTree.apply(updateStateTreeVisitor);
-			}
+		}
+		catch(Exception e)
+		{
+			throw new GeppettoExecutionException(e);
 		}
 		return _stateTree;
 	}
-
 
 	/**
 	 * 
@@ -297,7 +304,7 @@ public class JLEMSSimulatorService extends ASimulator
 					searchVar = ArrayUtils.getArrayName(s);
 				}
 
-				AVariable v = getVariable(searchVar, listToCheck);
+				AVariable v = ASimulator.getVariable(searchVar, listToCheck);
 
 				if(v == null)
 				{
@@ -348,21 +355,11 @@ public class JLEMSSimulatorService extends ASimulator
 		}
 	}
 
-	private AVariable getVariable(String s, List<AVariable> list)
-	{
-		String searchVar = s;
-		for(AVariable v : list)
-		{
-			if(v.getName().equals(searchVar))
-			{
-				return v;
-			}
-		}
-		return null;
-	}
+
 
 	@Override
-	public String getName() {
+	public String getName()
+	{
 		return this.simulatorConfig.getSimulatorName();
 	}
 }
