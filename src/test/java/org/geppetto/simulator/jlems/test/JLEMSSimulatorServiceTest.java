@@ -32,20 +32,17 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems.test;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.measure.quantity.Quantity;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
 
 import junit.framework.Assert;
 
-import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.data.model.SimpleType;
 import org.geppetto.core.data.model.SimpleVariable;
 import org.geppetto.core.data.model.StructuredType;
 import org.geppetto.core.data.model.VariableList;
-import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.data.DataModelFactory;
-import org.geppetto.core.model.state.StateTreeRoot;
-import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.junit.Test;
 import org.lemsml.jlems.core.api.LEMSRunConfiguration;
@@ -153,6 +150,20 @@ public class JLEMSSimulatorServiceTest
 		ObjectMapper mapper = new ObjectMapper();
 
 		Assert.assertEquals(mapper.writer().writeValueAsString(expectedList), mapper.writer().writeValueAsString(simulator.getWatchableVariables()));
+	}
+	
+	@Test
+	public void testGetUnitFromLEMSDimension()
+	{
+		//mass, length, time, current, temperature, amount, brightness
+		JLEMSSimulatorService sim=new JLEMSSimulatorService();
+		Unit<? extends Quantity> unit=sim.getUnitFromLEMSDimension("0,1,0,0,0,0,0");
+		Assert.assertEquals("m",unit.toString());
+		unit=sim.getUnitFromLEMSDimension("0,0,-3,0,0,0,0");
+		Assert.assertEquals("ms",unit.toString());
+		// 1 kg·m2·s-3·A-1
+		//unit=sim.getUnitFromLEMSDimension("3,2,-3,-1,0,0,0");
+		//Assert.assertEquals("V",unit.alternate("V"));
 	}
 
 }

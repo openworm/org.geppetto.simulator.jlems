@@ -32,9 +32,14 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringTokenizer;
+
+import javax.measure.quantity.Quantity;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -183,7 +188,7 @@ public class JLEMSSimulatorService extends ASimulator
 		{
 			throw new GeppettoExecutionException(e);
 		}
-		
+
 		populateStateTree(results);
 		notifyStateTreeUpdated();
 	}
@@ -251,7 +256,9 @@ public class JLEMSSimulatorService extends ASimulator
 									{
 										// it's a leaf node
 										SimpleStateNode newNode = new SimpleStateNode(current);
-										ALEMSValue lemsValue = results.getStates().get(state).get(results.getStates().get(state).size() - 1);
+										Unit<? extends Quantity> unit = getUnitFromLEMSDimension(results.getStates().get(state).getDimension());
+
+										ALEMSValue lemsValue = results.getStates().get(state).getLastValue();
 										if(lemsValue instanceof LEMSDoubleValue)
 										{
 											newNode.addValue(ValuesFactory.getDoubleValue(((LEMSDoubleValue) lemsValue).getAsDouble()));
@@ -279,6 +286,119 @@ public class JLEMSSimulatorService extends ASimulator
 			throw new GeppettoExecutionException(e);
 		}
 		return _stateTree;
+	}
+
+	/**
+	 * @param dimension
+	 * @return
+	 */
+	public Unit<? extends Quantity> getUnitFromLEMSDimension(String dimension)
+	{
+		// the dimension string is a comma-separated list of dimension powers in the order
+		// mass, length, time, current, temperature, amount, brightness
+		StringTokenizer st = new StringTokenizer(dimension, ",");
+
+		Unit<? extends Quantity> resultingUnit = Unit.ONE;
+		float mass = getDecimalNumber(Integer.parseInt(st.nextToken()));
+		if(mass != 0)
+		{
+			resultingUnit = resultingUnit.times(getUnit(mass, SI.GRAM));
+		}
+		float length = getDecimalNumber(Integer.parseInt(st.nextToken()));
+		if(length != 0)
+		{
+			resultingUnit = resultingUnit.times(getUnit(length,SI.METER));
+		}
+		float time = getDecimalNumber(Integer.parseInt(st.nextToken()));
+		if(time != 0)
+		{
+			resultingUnit = resultingUnit.times(getUnit(time,SI.SECOND));
+		}
+		float current = getDecimalNumber(Integer.parseInt(st.nextToken()));
+		if(current != 0)
+		{
+			resultingUnit = resultingUnit.times(getUnit(current,SI.AMPERE));
+		}
+		float temperature = getDecimalNumber(Integer.parseInt(st.nextToken()));
+		if(temperature != 0)
+		{
+			resultingUnit = resultingUnit.times(getUnit(temperature,SI.CELSIUS));
+		}
+		float amount = getDecimalNumber(Integer.parseInt(st.nextToken()));
+		if(amount != 0)
+		{
+			resultingUnit = resultingUnit.times(getUnit(amount,SI.MOLE));
+		}
+		float brightness = getDecimalNumber(Integer.parseInt(st.nextToken()));
+		if(brightness != 0)
+		{
+			resultingUnit = resultingUnit.times(getUnit(brightness,SI.CANDELA));
+		}
+		return resultingUnit;
+	}
+
+	/**
+	 * @param noZeros
+	 * @param unit
+	 * @return
+	 */
+	private Unit<?> getUnit(Float scaling, Unit<?> unit)
+	{
+		switch(scaling.intValue())
+		{
+			case -12:
+				return SI.PICO(unit);
+			case -9:
+				return SI.NANO(unit);
+			case -6:
+				return SI.MICRO(unit);
+			case -3:
+				return SI.MILLI(unit);
+			case -2:
+				return SI.CENTI(unit);
+			case -1:
+				return SI.DECI(unit);
+			case 12:
+				return SI.TERA(unit);
+			case 6:
+				return SI.MEGA(unit);
+			case 3:
+				return SI.KILO(unit);
+			case 2:
+				return SI.SQUARE_METRE;//SI.HECTO(unit);
+			case 1:
+				return unit;
+			default:
+				return unit.times(scaling);
+		}
+	}
+	
+	/**
+	 * @param noZeros
+	 * @return
+	 */
+	private float getDecimalNumber(int noZeros)
+	{
+		if(noZeros > 0)
+		{
+			char[] zeros = {};
+			if(noZeros > 1)
+			{
+				zeros = new char[noZeros];
+			}
+			Arrays.fill(zeros, '0');
+			return Float.parseFloat("1" + String.valueOf(zeros));
+		}
+		else if(noZeros < 0)
+		{
+			char[] zeros = new char[Math.abs(noZeros + 1)];
+			Arrays.fill(zeros, '0');
+			return Float.parseFloat("0." + String.valueOf(zeros) + "1");
+		}
+		else
+		{
+			return 0f;
+		}
 	}
 
 	/**
@@ -354,8 +474,6 @@ public class JLEMSSimulatorService extends ASimulator
 			}
 		}
 	}
-
-
 
 	@Override
 	public String getName()
