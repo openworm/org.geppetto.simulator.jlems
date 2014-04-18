@@ -68,7 +68,7 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 		{
 			_errorMessage=stateId+" not found in LEMS results:"+_lemsResults.getStates();
 		}
-		ALEMSValue lemsValue=_lemsResults.getStateValue(stateId, _lemsResults.getStates().get(stateId).size()-1);
+		ALEMSValue lemsValue=_lemsResults.getState(stateId).getLastValue();
 		if(lemsValue instanceof LEMSDoubleValue)
 		{
 			node.addValue(new DoubleValue(((LEMSDoubleValue)lemsValue).getAsDouble()));
