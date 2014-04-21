@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.geppetto</groupId>
 	<artifactId>simulator.jlems</artifactId>
-	<version>0.1.1</version>
+	<version>0.1.2</version>
 	<name>Geppetto jLEMS Simulator Bundle</name>
 	<packaging>bundle</packaging>
 	<properties>
@@ -11,11 +11,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
-	<dependency>
-	<groupId>cglib</groupId>
-	<artifactId>cglib</artifactId>
-	<version>2.2.2</version>
-</dependency>
+		<dependency>
+			<groupId>org.springframework.osgi</groupId>
+			<artifactId>spring-osgi-test</artifactId>
+			<version>1.2.1</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>com.springsource.org.apache.commons.logging</artifactId>
@@ -36,6 +36,11 @@
 			<artifactId>org.springframework.context</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.6</version>
+		</dependency>
 		<!-- test dependencies -->
 		<dependency>
 			<groupId>org.junit</groupId>
@@ -52,12 +57,12 @@
 		<dependency>
 			<groupId>org.geppetto</groupId>
 			<artifactId>core</artifactId>
-			<version>0.1.1</version>
+			<version>0.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.lemsml</groupId>
 			<artifactId>jlems</artifactId>
-			<version>0.9.6.0</version>
+			<version>0.9.7.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -85,6 +90,14 @@
 			<id>com.springsource.repository.libraries.external</id>
 			<name>SpringSource Enterprise Bundle Repository - External Library Releases</name>
 			<url>http://repository.springsource.com/maven/libraries/external</url>
+		</repository>
+		<repository>
+			<id>org.geppetto-mvn-repo</id>
+			<url>https://raw.github.com/openworm/org.geppetto.maven/mvn-repo</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
 		</repository>
 	</repositories>
 	<build>

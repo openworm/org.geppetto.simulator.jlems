@@ -30,84 +30,34 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE 
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  *******************************************************************************/
-package org.geppetto.simulator.jlems;
-
-import java.util.List;
+package org.geppetto.simulator.jlems.test;
 
 import org.geppetto.core.common.GeppettoExecutionException;
-import org.geppetto.core.common.GeppettoInitializationException;
-import org.geppetto.core.data.model.VariableList;
-import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.state.StateTreeRoot;
-import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
-import org.geppetto.core.simulator.ASimulator;
-import org.springframework.stereotype.Service;
 
 /**
  * @author matteocantarelli
  *
  */
-@Service
-public class NeuroMLSimulatorService extends ASimulator
+public class TestListener implements ISimulatorCallbackListener
 {
-	
-	@Override
-	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
-	{
-		super.initialize(models, listener);
-		//TODO Refactor simulators to deal with more than one model!
-		_stateTree=new StateTreeRoot(models.get(0).getId());
-		getListener().stateTreeUpdated(_stateTree);
-		advanceTimeStep(0);
-	}
+
+
+	private StateTreeRoot tree = null;
 
 	@Override
-	public void simulate(IRunConfiguration arg0) throws GeppettoExecutionException
+	public void stateTreeUpdated(StateTreeRoot stateTree) throws GeppettoExecutionException
 	{
-		advanceTimeStep(0);
-		// Do nothing
-		
-	}
-
-	@Override
-	public VariableList getForceableVariables()
-	{
-		return new VariableList();
-	}
-
-	@Override
-	public VariableList getWatchableVariables()
-	{
-		return new VariableList();
+		if(tree == null)
+		{
+			tree = stateTree;
+		}
 	}
 	
-	public void addWatchVariables(List<String> variableNames) {
-		// TODO Auto-generated method stub
-		
+	public StateTreeRoot getTree()
+	{
+		return tree;
 	}
-
-	@Override
-	public void startWatch() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void stopWatch() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void clearWatchVariables() {
-		// TODO Auto-generated method stub		
-	}
-
-	@Override
-	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
-	}	
 
 }

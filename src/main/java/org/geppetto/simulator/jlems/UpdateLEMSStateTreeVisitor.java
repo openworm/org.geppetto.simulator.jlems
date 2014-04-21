@@ -49,23 +49,26 @@ import org.lemsml.jlems.core.api.interfaces.ILEMSResultsContainer;
 public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 {
 
-	ILEMSResultsContainer _lemsResults;
+	private ILEMSResultsContainer _lemsResults;
+	private String _instancePath;
+	private String _errorMessage=null;
 
-	public UpdateLEMSStateTreeVisitor(ILEMSResultsContainer lemsResults)
+	public UpdateLEMSStateTreeVisitor(ILEMSResultsContainer lemsResults,String instancePath)
 	{
 		_lemsResults=lemsResults;
-
+		_instancePath=instancePath;
 	}
 
 	@Override
 	public boolean visitSimpleStateNode(SimpleStateNode node)
 	{
-		StateIdentifier stateId=new StateIdentifier(node.getFullName().replace(".", "/"));
+		String lemsState=node.getFullName().replace(_instancePath+".", "").replace(".", "/");
+		StateIdentifier stateId=new StateIdentifier(lemsState);
 		if(!_lemsResults.getStates().containsKey(stateId))
 		{
-			throw new RuntimeException(stateId+" not found in LEMS results:"+_lemsResults.getStates());
+			_errorMessage=stateId+" not found in LEMS results:"+_lemsResults.getStates();
 		}
-		ALEMSValue lemsValue=_lemsResults.getStateValue(stateId, _lemsResults.getStates().get(stateId).size()-1);
+		ALEMSValue lemsValue=_lemsResults.getState(stateId).getLastValue();
 		if(lemsValue instanceof LEMSDoubleValue)
 		{
 			node.addValue(new DoubleValue(((LEMSDoubleValue)lemsValue).getAsDouble()));
@@ -73,4 +76,11 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 		return super.visitSimpleStateNode(node);
 	}
 
+	/**
+	 * @return
+	 */
+	public String getError()
+	{
+		return _errorMessage;
+	}
 }
