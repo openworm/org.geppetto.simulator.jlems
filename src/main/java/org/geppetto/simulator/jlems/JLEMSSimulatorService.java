@@ -32,6 +32,7 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -101,6 +102,7 @@ public class JLEMSSimulatorService extends ASimulator
 	private static Log _logger = LogFactory.getLog(JLEMSSimulatorService.class);
 	private ILEMSSimulator _simulator = null;
 	private ILEMSRunConfiguration _runConfig;
+	private DecimalFormat _df = new DecimalFormat("0.E0");
 
 	@Autowired
 	private SimulatorConfig simulatorConfig;
@@ -256,8 +258,20 @@ public class JLEMSSimulatorService extends ASimulator
 									{
 										// it's a leaf node
 										SimpleStateNode newNode = new SimpleStateNode(current);
+										//commenting out until it's working
+										/*
 										Unit<? extends Quantity> unit = getUnitFromLEMSDimension(results.getStates().get(state).getDimension());
+										newNode.setUnit(unit.toString());
+										
+										UnitConverter r = unit.getConverterTo(unit.getStandardUnit());
 
+										long factor = 0; 
+										if(r instanceof RationalConverter ){
+											factor = ((RationalConverter) r).getDivisor();
+										}
+										
+										newNode.setScalingFactor(_df.format(factor));
+										*/
 										ALEMSValue lemsValue = results.getStates().get(state).getLastValue();
 										if(lemsValue instanceof LEMSDoubleValue)
 										{
@@ -365,7 +379,7 @@ public class JLEMSSimulatorService extends ASimulator
 			case 3:
 				return SI.KILO(unit);
 			case 2:
-				return SI.SQUARE_METRE;//SI.HECTO(unit);
+				return SI.HECTO(unit);
 			case 1:
 				return unit;
 			default:
