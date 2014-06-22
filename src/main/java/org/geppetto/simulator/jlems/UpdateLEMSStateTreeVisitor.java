@@ -32,7 +32,7 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
-import org.geppetto.core.model.state.SimpleStateNode;
+import org.geppetto.core.model.state.ASimpleStateNode;
 import org.geppetto.core.model.state.visitors.DefaultStateVisitor;
 import org.geppetto.core.model.values.DoubleValue;
 import org.lemsml.jlems.core.api.ALEMSValue;
@@ -60,7 +60,7 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 	}
 
 	@Override
-	public boolean visitSimpleStateNode(SimpleStateNode node)
+	public boolean visitSimpleStateNode(ASimpleStateNode node)
 	{
 		String lemsState=node.getFullName().replace(_instancePath+".", "").replace(".", "/");
 		StateIdentifier stateId=new StateIdentifier(lemsState);

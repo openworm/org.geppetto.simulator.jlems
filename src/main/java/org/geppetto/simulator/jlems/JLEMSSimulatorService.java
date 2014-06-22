@@ -57,10 +57,10 @@ import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.data.DataModelFactory;
 import org.geppetto.core.model.state.AStateNode;
-import org.geppetto.core.model.state.CompositeStateNode;
-import org.geppetto.core.model.state.SimpleStateNode;
+import org.geppetto.core.model.state.ACompositeStateNode;
 import org.geppetto.core.model.state.StateTreeRoot;
 import org.geppetto.core.model.state.StateTreeRoot.SUBTREE;
+import org.geppetto.core.model.state.StateVariableNode;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
@@ -213,7 +213,7 @@ public class JLEMSSimulatorService extends ASimulator
 			advanceTimeStep(_runConfig.getTimestep());
 			if(isWatching())
 			{
-				CompositeStateNode watchTree = _stateTree.getSubTree(SUBTREE.WATCH_TREE);
+				ACompositeStateNode watchTree = _stateTree.getSubTree(SUBTREE.WATCH_TREE);
 				if(watchTree.getChildren().isEmpty() || watchListModified())
 				{
 					watchListModified(false);
@@ -224,7 +224,7 @@ public class JLEMSSimulatorService extends ASimulator
 						if(getWatchList().contains(fullPath))
 						{
 							StringTokenizer tokenizer = new StringTokenizer(fullPath, ".");
-							CompositeStateNode node = watchTree;
+							ACompositeStateNode node = watchTree;
 							while(tokenizer.hasMoreElements())
 							{
 								String current = tokenizer.nextToken();
@@ -233,9 +233,9 @@ public class JLEMSSimulatorService extends ASimulator
 								{
 									if(child.getName().equals(current))
 									{
-										if(child instanceof CompositeStateNode)
+										if(child instanceof ACompositeStateNode)
 										{
-											node = (CompositeStateNode) child;
+											node = (ACompositeStateNode) child;
 										}
 										found = true;
 										break;
@@ -250,14 +250,14 @@ public class JLEMSSimulatorService extends ASimulator
 									if(tokenizer.hasMoreElements())
 									{
 										// not a leaf, create a composite state node
-										CompositeStateNode newNode = new CompositeStateNode(current);
+										ACompositeStateNode newNode = new ACompositeStateNode(current);
 										node.addChild(newNode);
 										node = newNode;
 									}
 									else
 									{
 										// it's a leaf node
-										SimpleStateNode newNode = new SimpleStateNode(current);
+										StateVariableNode newNode = new StateVariableNode(current);
 										//commenting out until it's working
 										/*
 										Unit<? extends Quantity> unit = getUnitFromLEMSDimension(results.getStates().get(state).getDimension());
