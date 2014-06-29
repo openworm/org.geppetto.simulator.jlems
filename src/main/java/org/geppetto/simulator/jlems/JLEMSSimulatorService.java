@@ -56,10 +56,11 @@ import org.geppetto.core.data.model.StructuredType;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.data.DataModelFactory;
-import org.geppetto.core.model.state.AStateNode;
+import org.geppetto.core.model.state.ANode;
 import org.geppetto.core.model.state.ACompositeStateNode;
-import org.geppetto.core.model.state.StateTreeRoot;
-import org.geppetto.core.model.state.StateTreeRoot.SUBTREE;
+import org.geppetto.core.model.state.AspectTreeNode;
+import org.geppetto.core.model.state.AspectTreeNode.SUBTREE;
+import org.geppetto.core.model.state.CompositeVariableNode;
 import org.geppetto.core.model.state.StateVariableNode;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.simulation.IRunConfiguration;
@@ -200,13 +201,13 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @return
 	 * @throws GeppettoExecutionException
 	 */
-	private StateTreeRoot populateStateTree(ILEMSResultsContainer results) throws GeppettoExecutionException
+	private AspectTreeNode populateStateTree(ILEMSResultsContainer results) throws GeppettoExecutionException
 	{
 
 		if(_stateTree == null)
 		{
 			// TODO Refactor simulators to deal with more than one model!
-			_stateTree = new StateTreeRoot(_models.get(0).getId());
+			_stateTree = new AspectTreeNode(_models.get(0).getId());
 		}
 		try
 		{
@@ -229,7 +230,7 @@ public class JLEMSSimulatorService extends ASimulator
 							{
 								String current = tokenizer.nextToken();
 								boolean found = false;
-								for(AStateNode child : node.getChildren())
+								for(ANode child : node.getChildren())
 								{
 									if(child.getName().equals(current))
 									{
@@ -250,7 +251,7 @@ public class JLEMSSimulatorService extends ASimulator
 									if(tokenizer.hasMoreElements())
 									{
 										// not a leaf, create a composite state node
-										ACompositeStateNode newNode = new ACompositeStateNode(current);
+										CompositeVariableNode newNode = new CompositeVariableNode(current);
 										node.addChild(newNode);
 										node = newNode;
 									}
