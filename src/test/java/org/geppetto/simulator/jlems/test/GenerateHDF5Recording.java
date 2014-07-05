@@ -44,7 +44,7 @@ import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
-import org.geppetto.core.model.state.AspectTreeNode;
+import org.geppetto.core.model.runtime.AspectTreeNode;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.lemsml.jlems.core.api.LEMSDocumentReader;
 import org.lemsml.jlems.core.api.LEMSRunConfiguration;
