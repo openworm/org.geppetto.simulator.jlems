@@ -44,7 +44,7 @@ import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
-import org.geppetto.core.model.runtime.AspectTreeNode;
+import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.lemsml.jlems.core.api.LEMSDocumentReader;
 import org.lemsml.jlems.core.api.LEMSRunConfiguration;
@@ -117,7 +117,7 @@ public class GenerateHDF5Recording
 
 	}
 
-	private static void writeHDF5File(String filename, String path, AspectTreeNode tree)
+	private static void writeHDF5File(String filename, String path, AspectSubTreeNode tree)
 	{
 
 //		try

@@ -58,10 +58,10 @@ import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.data.DataModelFactory;
 import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
-import org.geppetto.core.model.runtime.AspectTreeNode;
+import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.CompositeVariableNode;
 import org.geppetto.core.model.runtime.StateVariableNode;
-import org.geppetto.core.model.runtime.AspectTreeNode.ASPECTTREE;
+import org.geppetto.core.model.runtime.AspectSubTreeNode.ASPECTTREE;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
@@ -201,13 +201,13 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @return
 	 * @throws GeppettoExecutionException
 	 */
-	private AspectTreeNode populateStateTree(ILEMSResultsContainer results) throws GeppettoExecutionException
+	private AspectSubTreeNode populateStateTree(ILEMSResultsContainer results) throws GeppettoExecutionException
 	{
 
 		if(_stateTree == null)
 		{
 			// TODO Refactor simulators to deal with more than one model!
-			_stateTree = new AspectTreeNode(_models.get(0).getId());
+			_stateTree = new AspectSubTreeNode(_models.get(0).getId());
 		}
 		try
 		{

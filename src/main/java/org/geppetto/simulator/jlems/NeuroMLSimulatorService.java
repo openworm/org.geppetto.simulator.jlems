@@ -38,7 +38,7 @@ import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.IModel;
-import org.geppetto.core.model.runtime.AspectTreeNode;
+import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
@@ -57,7 +57,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	{
 		super.initialize(models, listener);
 		//TODO Refactor simulators to deal with more than one model!
-		_stateTree=new AspectTreeNode(models.get(0).getId());
+		_stateTree=new AspectSubTreeNode(models.get(0).getId());
 		getListener().stateTreeUpdated(_stateTree);
 		advanceTimeStep(0);
 	}
