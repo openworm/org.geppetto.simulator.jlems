@@ -32,7 +32,8 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
-import org.geppetto.core.model.runtime.StateVariableNode;
+import org.geppetto.core.model.quantities.PhysicalQuantity;
+import org.geppetto.core.model.runtime.VariableNode;
 import org.geppetto.core.model.state.visitors.DefaultStateVisitor;
 import org.geppetto.core.model.values.DoubleValue;
 import org.lemsml.jlems.core.api.ALEMSValue;
@@ -60,7 +61,7 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 	}
 
 	@Override
-	public boolean visitStateVariableNode(StateVariableNode node)
+	public boolean visitVariableNode(VariableNode node)
 	{
 		String lemsState=node.getInstancePath().replace(_instancePath+".", "").replace(".", "/");
 		StateIdentifier stateId=new StateIdentifier(lemsState);
@@ -71,9 +72,11 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 		ALEMSValue lemsValue=_lemsResults.getState(stateId).getLastValue();
 		if(lemsValue instanceof LEMSDoubleValue)
 		{
-			node.addValue(new DoubleValue(((LEMSDoubleValue)lemsValue).getAsDouble()));
+			PhysicalQuantity quantity = new PhysicalQuantity();
+			quantity.setValue(new DoubleValue(((LEMSDoubleValue)lemsValue).getAsDouble()));
+			node.addPhysicalQuantity(quantity);
 		}
-		return super.visitStateVariableNode(node);
+		return super.visitVariableNode(node);
 	}
 
 	/**

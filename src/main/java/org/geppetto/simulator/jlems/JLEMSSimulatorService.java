@@ -32,6 +32,7 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,14 +55,17 @@ import org.geppetto.core.data.model.SimpleType;
 import org.geppetto.core.data.model.SimpleType.Type;
 import org.geppetto.core.data.model.StructuredType;
 import org.geppetto.core.model.IModel;
+import org.geppetto.core.model.ModelInterpreterException;
 import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.data.DataModelFactory;
+import org.geppetto.core.model.quantities.PhysicalQuantity;
 import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
+import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.CompositeVariableNode;
-import org.geppetto.core.model.runtime.StateVariableNode;
-import org.geppetto.core.model.runtime.AspectSubTreeNode.ASPECTTREE;
+import org.geppetto.core.model.runtime.VariableNode;
+import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
@@ -89,6 +93,7 @@ import org.lemsml.jlems.core.api.interfaces.IStateIdentifier;
 import org.lemsml.jlems.core.api.interfaces.IStateRecord;
 import org.lemsml.jlems.core.expression.ParseError;
 import org.lemsml.jlems.core.sim.ContentError;
+import org.neuroml.model.NeuroMLDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -106,7 +111,12 @@ public class JLEMSSimulatorService extends ASimulator
 	private DecimalFormat _df = new DecimalFormat("0.E0");
 
 	@Autowired
-	private SimulatorConfig simulatorConfig;
+	private SimulatorConfig jlemsSimulatorConfig;
+	
+	private static final String NEUROML_ID = "neuroml";
+	private static final String URL_ID = "url";
+	
+	private PopulateVisualTree populateVisualTree = new PopulateVisualTree();
 
 	/*
 	 * (non-Javadoc)
@@ -163,6 +173,32 @@ public class JLEMSSimulatorService extends ASimulator
 		}
 		_logger.info("jLEMS Simulator initialized");
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.geppetto.core.simulator.ISimulator#populateVisualTree(org.geppetto.core.model.runtime.AspectNode)
+	 */
+	@Override
+	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException {
+		
+		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
+
+		IModel model = aspectNode.getModel();
+		try
+		{
+			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
+			if(neuroml != null)
+			{
+				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);					
+			}
+		}
+		catch(Exception e)
+		{
+			throw new ModelInterpreterException(e);
+		}
+		return true;
+	}
+
 
 	public ILEMSRunConfiguration getRunConfig()
 	{
@@ -214,7 +250,7 @@ public class JLEMSSimulatorService extends ASimulator
 			advanceTimeStep(_runConfig.getTimestep());
 			if(isWatching())
 			{
-				ACompositeNode watchTree = _stateTree.getSubTree(ASPECTTREE.WATCH_TREE);
+				ACompositeNode watchTree = _stateTree.getSubTree(AspectTreeType.WATCH_TREE);
 				if(watchTree.getChildren().isEmpty() || watchListModified())
 				{
 					watchListModified(false);
@@ -258,7 +294,7 @@ public class JLEMSSimulatorService extends ASimulator
 									else
 									{
 										// it's a leaf node
-										StateVariableNode newNode = new StateVariableNode(current);
+										VariableNode newNode = new VariableNode(current);
 										//commenting out until it's working
 										/*
 										Unit<? extends Quantity> unit = getUnitFromLEMSDimension(results.getStates().get(state).getDimension());
@@ -276,7 +312,9 @@ public class JLEMSSimulatorService extends ASimulator
 										ALEMSValue lemsValue = results.getStates().get(state).getLastValue();
 										if(lemsValue instanceof LEMSDoubleValue)
 										{
-											newNode.addValue(ValuesFactory.getDoubleValue(((LEMSDoubleValue) lemsValue).getAsDouble()));
+											PhysicalQuantity quantity = new PhysicalQuantity();
+											quantity.setValue(ValuesFactory.getDoubleValue(((LEMSDoubleValue) lemsValue).getAsDouble()));
+											newNode.addPhysicalQuantity(quantity);
 										}
 										node.addChild(newNode);
 									}
@@ -493,6 +531,6 @@ public class JLEMSSimulatorService extends ASimulator
 	@Override
 	public String getName()
 	{
-		return this.simulatorConfig.getSimulatorName();
+		return this.jlemsSimulatorConfig.getSimulatorName();
 	}
 }
