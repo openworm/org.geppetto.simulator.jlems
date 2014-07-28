@@ -42,14 +42,13 @@ import java.util.Map;
 
 import javax.xml.bind.UnmarshalException;
 
-import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AVisualObjectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
-import org.geppetto.core.model.runtime.CompositeVariableNode;
 import org.geppetto.core.model.runtime.CylinderNode;
 import org.geppetto.core.model.runtime.SphereNode;
 import org.geppetto.core.model.runtime.TextMetadataNode;
+import org.geppetto.core.model.runtime.VisualGroupNode;
 import org.geppetto.core.visualisation.model.Point;
 import org.neuroml.model.BaseCell;
 import org.neuroml.model.Cell;
@@ -69,7 +68,7 @@ import org.neuroml.model.SegmentGroup;
 import org.neuroml.model.util.NeuroMLConverter;
 
 /**
- * Populate visualization tree for neuroml models
+ * Helper class to populate visualization tree for neuroml models
  * 
  * @author  Jesus R. Martinez (jesus@metacell.us)
  *
@@ -151,8 +150,9 @@ public class PopulateVisualTree
 	 * @param id 
 	 * @return
 	 */
-	private void getVisualObjectsFromListOfSegments(ACompositeNode parentNode, List<Segment> list, String id)
+	private VisualGroupNode getVisualObjectsFromListOfSegments(List<Segment> list, String id)
 	{
+		VisualGroupNode visualGroup = new VisualGroupNode();
 		Map<String, Point3DWithDiam> distalPoints = new HashMap<String, Point3DWithDiam>();
 		for(Segment s : list)
 		{
@@ -166,9 +166,12 @@ public class PopulateVisualTree
 			{
 				parentDistal = distalPoints.get(idSegmentParent);
 			}
-			parentNode.addChild(getCylinderFromSegment(s, parentDistal));
+			visualGroup.setName(idSegmentParent);
+			visualGroup.addChild(getCylinderFromSegment(s, parentDistal));
 			distalPoints.put(s.getId().toString(), s.getDistal());
-		}		
+		}	
+		
+		return visualGroup;
 	}
 
 	/**
@@ -182,7 +185,7 @@ public class PopulateVisualTree
 		{
 			for(Morphology m : morphologies)
 			{
-				getVisualObjectsFromListOfSegments(modelTree,m.getSegment(), m.getId());
+				modelTree.addChild(getVisualObjectsFromListOfSegments(m.getSegment(), m.getId()));
 			}
 		}
 		List<Cell> cells = neuroml.getCell();
@@ -236,6 +239,8 @@ public class PopulateVisualTree
 
 		for(Network n : networks)
 		{
+			VisualGroupNode networkNode = new VisualGroupNode(n.getId());
+			
 			for(Population p : n.getPopulation())
 			{
 				BaseCell cell = retrieveNeuroMLCell(p.getComponent(), url);
@@ -260,7 +265,7 @@ public class PopulateVisualTree
 							e.setId(p.getId());
 						}						
 						objects.put(e.getId(), e);
-						visualizationTree.addChild(e);
+						networkNode.addChild(e);
 					}
 					i++;
 
@@ -280,6 +285,8 @@ public class PopulateVisualTree
 					}
 				}
 			}
+			
+			visualizationTree.addChild(networkNode);
 		}
 	}
 	
@@ -319,14 +326,14 @@ public class PopulateVisualTree
 	}
 
 	/**
+	 * @param visualizationTree 
 	 * @param modelTree
 	 * @param list
 	 * @return
 	 */
-	private void createNodesFromMorphologyBySegmentGroup(AspectSubTreeNode modelTree, Morphology cellmorphology, String cellId)
+	private void createNodesFromMorphologyBySegmentGroup(AspectSubTreeNode visualizationTree, Morphology cellmorphology, String cellId)
 	{		
-		CompositeVariableNode allSegments = new CompositeVariableNode();
-		getVisualObjectsFromListOfSegments(allSegments,cellmorphology.getSegment(), cellmorphology.getId());
+		VisualGroupNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(), cellmorphology.getId());
 
 		Map<String, List<AVisualObjectNode>> segmentGeometries = new HashMap<String, List<AVisualObjectNode>>();
 
@@ -360,16 +367,13 @@ public class PopulateVisualTree
 
 			// this adds all segment groups not contained in the macro groups if any
 			for(String sgId : segmentGeometries.keySet())
-			{				
-				TextMetadataNode text = new TextMetadataNode();
-				text.setAdditionalProperty(GROUP_PROPERTY, sgId);
-				
+			{								
 				List<AVisualObjectNode> segments = segmentGeometries.get(sgId);
-				for(AVisualObjectNode v : segments){
-					v.setId(getGroupId(cellId, sgId));
-					modelTree.addChild(v);
-				}
-				
+
+				VisualGroupNode visualGroup = new VisualGroupNode(getGroupId(cellId, sgId));
+				visualGroup.getChildren().addAll(segments);
+				visualGroup.setId(getGroupId(cellId, sgId));
+				visualizationTree.addChild(visualGroup);
 			}
 
 		}
@@ -412,7 +416,7 @@ public class PopulateVisualTree
 	 * @param allSegments
 	 * @return
 	 */
-	private List<AVisualObjectNode> getVisualObjectsForGroup(SegmentGroup sg, CompositeVariableNode allSegments)
+	private List<AVisualObjectNode> getVisualObjectsForGroup(SegmentGroup sg, VisualGroupNode allSegments)
 	{
 		List<AVisualObjectNode> geometries = new ArrayList<AVisualObjectNode>();
 		for(Member m : sg.getMember())

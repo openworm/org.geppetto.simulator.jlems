@@ -152,8 +152,6 @@ public class JLEMSSimulatorService extends ASimulator
 				_simulator.initialize(instance, _runConfig);
 			}
 			setWatchableVariables();
-			ILEMSResultsContainer results = new LEMSResultsContainer();
-			getListener().stateTreeUpdated(populateStateTree(results));
 		}
 		catch(LEMSBuildException e)
 		{
@@ -179,7 +177,7 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @see org.geppetto.core.simulator.ISimulator#populateVisualTree(org.geppetto.core.model.runtime.AspectNode)
 	 */
 	@Override
-	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException {
+	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException, GeppettoExecutionException {
 		
 		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
 
@@ -189,13 +187,18 @@ public class JLEMSSimulatorService extends ASimulator
 			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
 			if(neuroml != null)
 			{
-				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);					
+				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
+				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);	
+				populateVisualTree.createNodesFromNetwork(visualizationTree, neuroml, url);
 			}
 		}
 		catch(Exception e)
 		{
 			throw new ModelInterpreterException(e);
-		}
+		}			
+		
+		getListener().stateTreeUpdated(aspectNode);
+
 		return true;
 	}
 
@@ -216,7 +219,7 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @see org.geppetto.core.simulator.ISimulator#simulate(org.geppetto.core.simulation.IRunConfiguration)
 	 */
 	@Override
-	public void simulate(IRunConfiguration runConfiguration) throws GeppettoExecutionException
+	public void simulate(IRunConfiguration runConfiguration, AspectNode aspect) throws GeppettoExecutionException
 	{
 		ILEMSResultsContainer results = new LEMSResultsContainer();
 		try
@@ -228,8 +231,8 @@ public class JLEMSSimulatorService extends ASimulator
 			throw new GeppettoExecutionException(e);
 		}
 
-		populateStateTree(results);
-		notifyStateTreeUpdated();
+		populateSimulationTree(results, aspect);
+		notifyStateTreeUpdated(aspect);
 	}
 
 	/**
@@ -237,20 +240,14 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @return
 	 * @throws GeppettoExecutionException
 	 */
-	private AspectSubTreeNode populateStateTree(ILEMSResultsContainer results) throws GeppettoExecutionException
+	private void populateSimulationTree(ILEMSResultsContainer results, AspectNode aspect) throws GeppettoExecutionException
 	{
-
-		if(_stateTree == null)
-		{
-			// TODO Refactor simulators to deal with more than one model!
-			_stateTree = new AspectSubTreeNode(_models.get(0).getId());
-		}
 		try
 		{
 			advanceTimeStep(_runConfig.getTimestep());
 			if(isWatching())
 			{
-				ACompositeNode watchTree = _stateTree.getSubTree(AspectTreeType.WATCH_TREE);
+				ACompositeNode watchTree = aspect.getSubTree(AspectTreeType.WATCH_TREE);
 				if(watchTree.getChildren().isEmpty() || watchListModified())
 				{
 					watchListModified(false);
@@ -313,7 +310,9 @@ public class JLEMSSimulatorService extends ASimulator
 										if(lemsValue instanceof LEMSDoubleValue)
 										{
 											PhysicalQuantity quantity = new PhysicalQuantity();
-											quantity.setValue(ValuesFactory.getDoubleValue(((LEMSDoubleValue) lemsValue).getAsDouble()));
+											LEMSDoubleValue db = (LEMSDoubleValue)lemsValue;
+											
+											quantity.setValue(ValuesFactory.getDoubleValue(db.getAsDouble()));
 											newNode.addPhysicalQuantity(quantity);
 										}
 										node.addChild(newNode);
@@ -338,7 +337,6 @@ public class JLEMSSimulatorService extends ASimulator
 		{
 			throw new GeppettoExecutionException(e);
 		}
-		return _stateTree;
 	}
 
 	/**
@@ -532,5 +530,11 @@ public class JLEMSSimulatorService extends ASimulator
 	public String getName()
 	{
 		return this.jlemsSimulatorConfig.getSimulatorName();
+	}
+
+	@Override
+	public String getId()
+	{
+		return this.jlemsSimulatorConfig.getSimulatorID();
 	}
 }

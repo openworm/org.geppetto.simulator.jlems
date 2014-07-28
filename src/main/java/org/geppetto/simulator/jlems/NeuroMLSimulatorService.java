@@ -72,14 +72,11 @@ public class NeuroMLSimulatorService extends ASimulator
 	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
 	{
 		super.initialize(models, listener);
-		//TODO Refactor simulators to deal with more than one model!
-		_stateTree=new AspectSubTreeNode(models.get(0).getId());
-		getListener().stateTreeUpdated(_stateTree);
 		advanceTimeStep(0);
 	}
 
 	@Override
-	public void simulate(IRunConfiguration arg0) throws GeppettoExecutionException
+	public void simulate(IRunConfiguration arg0, AspectNode aspect) throws GeppettoExecutionException
 	{
 		advanceTimeStep(0);
 		// Do nothing
@@ -151,6 +148,13 @@ public class NeuroMLSimulatorService extends ASimulator
 	@Override
 	public String getName() {
 		return this.neuroMLSimulatorConfig.getSimulatorName();
+	}
+
+	@Override
+	public String getId()
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}	
 
 }

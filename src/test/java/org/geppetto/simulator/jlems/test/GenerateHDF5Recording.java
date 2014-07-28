@@ -90,7 +90,7 @@ public class GenerateHDF5Recording
 			int step = 0;
 			while(step++ < 100)
 			{
-				simulator.simulate(null);
+				simulator.simulate(null,null);
 			}
 			writeHDF5File("hdf5test.h5", "hhcell.electrical", listener.getTree());
 		}

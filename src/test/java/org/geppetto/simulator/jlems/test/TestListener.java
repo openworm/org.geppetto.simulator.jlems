@@ -33,6 +33,7 @@
 package org.geppetto.simulator.jlems.test;
 
 import org.geppetto.core.common.GeppettoExecutionException;
+import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 
@@ -47,12 +48,8 @@ public class TestListener implements ISimulatorCallbackListener
 	private AspectSubTreeNode tree = null;
 
 	@Override
-	public void stateTreeUpdated(AspectSubTreeNode stateTree) throws GeppettoExecutionException
+	public void stateTreeUpdated(AspectNode aspect) throws GeppettoExecutionException
 	{
-		if(tree == null)
-		{
-			tree = stateTree;
-		}
 	}
 	
 	public AspectSubTreeNode getTree()
