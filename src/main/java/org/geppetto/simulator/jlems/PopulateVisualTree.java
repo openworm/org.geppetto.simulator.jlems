@@ -222,7 +222,7 @@ public class PopulateVisualTree
 		origin.setY(0d);
 		origin.setZ(0d);
 		sphere.setPosition(origin);
-		sphere.setId("abstract");
+		sphere.setId(id);
 		return sphere;
 	}
 	
