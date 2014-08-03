@@ -48,7 +48,7 @@ public class TestListener implements ISimulatorCallbackListener
 	private AspectSubTreeNode tree = null;
 
 	@Override
-	public void stateTreeUpdated(AspectNode aspect) throws GeppettoExecutionException
+	public void stateTreeUpdated() throws GeppettoExecutionException
 	{
 	}
 	

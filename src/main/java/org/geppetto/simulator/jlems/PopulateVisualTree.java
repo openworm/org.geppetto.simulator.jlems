@@ -178,14 +178,14 @@ public class PopulateVisualTree
 	 * @param neuroml
 	 * @return
 	 */
-	public void createNodesFromNeuroMLDocument(AspectSubTreeNode modelTree, NeuroMLDocument neuroml)
+	public void createNodesFromNeuroMLDocument(AspectSubTreeNode visualizationTree, NeuroMLDocument neuroml)
 	{
 		List<Morphology> morphologies = neuroml.getMorphology();
 		if(morphologies != null)
 		{
 			for(Morphology m : morphologies)
 			{
-				modelTree.addChild(getVisualObjectsFromListOfSegments(m.getSegment(), m.getId()));
+				visualizationTree.addChild(getVisualObjectsFromListOfSegments(m.getSegment(), m.getId()));
 			}
 		}
 		List<Cell> cells = neuroml.getCell();
@@ -195,7 +195,7 @@ public class PopulateVisualTree
 			{
 				_discoveredCells.put(c.getId(), c);
 				Morphology cellmorphology = c.getMorphology();
-				createNodesFromMorphologyBySegmentGroup(modelTree,cellmorphology,c.getId());
+				createNodesFromMorphologyBySegmentGroup(visualizationTree,cellmorphology,c.getId());
 			}
 		}
 		List<IafCell> iafCells = neuroml.getIafCell();
@@ -281,7 +281,7 @@ public class PopulateVisualTree
 
 						e.setId(e.getId() + "[" + i + "]");
 						objects.put(e.getId(), e);
-						visualizationTree.addChild(e);
+						networkNode.addChild(e);
 					}
 				}
 			}
@@ -327,14 +327,16 @@ public class PopulateVisualTree
 
 	/**
 	 * @param visualizationTree 
-	 * @param modelTree
 	 * @param list
 	 * @return
 	 */
 	private void createNodesFromMorphologyBySegmentGroup(AspectSubTreeNode visualizationTree, Morphology cellmorphology, String cellId)
 	{		
-		VisualGroupNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(), cellmorphology.getId());
+		VisualGroupNode cellNode = new VisualGroupNode(cellId);
+		cellNode.setId(cellId);
 
+		VisualGroupNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(), cellmorphology.getId());
+		
 		Map<String, List<AVisualObjectNode>> segmentGeometries = new HashMap<String, List<AVisualObjectNode>>();
 
 		if(!cellmorphology.getSegmentGroup().isEmpty())
@@ -369,14 +371,13 @@ public class PopulateVisualTree
 			for(String sgId : segmentGeometries.keySet())
 			{								
 				List<AVisualObjectNode> segments = segmentGeometries.get(sgId);
-
-				VisualGroupNode visualGroup = new VisualGroupNode(getGroupId(cellId, sgId));
-				visualGroup.getChildren().addAll(segments);
-				visualGroup.setId(getGroupId(cellId, sgId));
-				visualizationTree.addChild(visualGroup);
+				
+				cellNode.getChildren().addAll(segments);
 			}
 
 		}
+		
+		visualizationTree.addChild(cellNode);
 	}
 
 	/**

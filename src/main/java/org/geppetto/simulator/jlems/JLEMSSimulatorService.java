@@ -151,6 +151,8 @@ public class JLEMSSimulatorService extends ASimulator
 			{
 				_simulator.initialize(instance, _runConfig);
 			}
+			
+			this.notifyStateTreeUpdated();
 			setWatchableVariables();
 		}
 		catch(LEMSBuildException e)
@@ -197,7 +199,7 @@ public class JLEMSSimulatorService extends ASimulator
 			throw new ModelInterpreterException(e);
 		}			
 		
-		getListener().stateTreeUpdated(aspectNode);
+		notifyStateTreeUpdated();
 
 		return true;
 	}
@@ -231,8 +233,8 @@ public class JLEMSSimulatorService extends ASimulator
 			throw new GeppettoExecutionException(e);
 		}
 
-		populateSimulationTree(results, aspect);
-		notifyStateTreeUpdated(aspect);
+		updateSimulationTree(results, aspect);
+		notifyStateTreeUpdated();
 	}
 
 	/**
@@ -240,7 +242,7 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @return
 	 * @throws GeppettoExecutionException
 	 */
-	private void populateSimulationTree(ILEMSResultsContainer results, AspectNode aspect) throws GeppettoExecutionException
+	private void updateSimulationTree(ILEMSResultsContainer results, AspectNode aspect) throws GeppettoExecutionException
 	{
 		try
 		{
