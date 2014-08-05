@@ -48,7 +48,7 @@ import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.CylinderNode;
 import org.geppetto.core.model.runtime.SphereNode;
 import org.geppetto.core.model.runtime.TextMetadataNode;
-import org.geppetto.core.model.runtime.VisualGroupNode;
+import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.visualisation.model.Point;
 import org.neuroml.model.BaseCell;
 import org.neuroml.model.Cell;
@@ -150,9 +150,9 @@ public class PopulateVisualTree
 	 * @param id 
 	 * @return
 	 */
-	private VisualGroupNode getVisualObjectsFromListOfSegments(List<Segment> list, String id)
+	private CompositeNode getVisualObjectsFromListOfSegments(List<Segment> list, String id)
 	{
-		VisualGroupNode visualGroup = new VisualGroupNode();
+		CompositeNode visualGroup = new CompositeNode();
 		Map<String, Point3DWithDiam> distalPoints = new HashMap<String, Point3DWithDiam>();
 		for(Segment s : list)
 		{
@@ -239,7 +239,7 @@ public class PopulateVisualTree
 
 		for(Network n : networks)
 		{
-			VisualGroupNode networkNode = new VisualGroupNode(n.getId());
+			CompositeNode networkNode = new CompositeNode(n.getId());
 			
 			for(Population p : n.getPopulation())
 			{
@@ -332,10 +332,9 @@ public class PopulateVisualTree
 	 */
 	private void createNodesFromMorphologyBySegmentGroup(AspectSubTreeNode visualizationTree, Morphology cellmorphology, String cellId)
 	{		
-		VisualGroupNode cellNode = new VisualGroupNode(cellId);
-		cellNode.setId(cellId);
+		CompositeNode cellNode = new CompositeNode(cellId);
 
-		VisualGroupNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(), cellmorphology.getId());
+		CompositeNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(), cellmorphology.getId());
 		
 		Map<String, List<AVisualObjectNode>> segmentGeometries = new HashMap<String, List<AVisualObjectNode>>();
 
@@ -417,7 +416,7 @@ public class PopulateVisualTree
 	 * @param allSegments
 	 * @return
 	 */
-	private List<AVisualObjectNode> getVisualObjectsForGroup(SegmentGroup sg, VisualGroupNode allSegments)
+	private List<AVisualObjectNode> getVisualObjectsForGroup(SegmentGroup sg, CompositeNode allSegments)
 	{
 		List<AVisualObjectNode> geometries = new ArrayList<AVisualObjectNode>();
 		for(Member m : sg.getMember())

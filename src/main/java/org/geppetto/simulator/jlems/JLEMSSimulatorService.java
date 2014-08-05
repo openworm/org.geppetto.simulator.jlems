@@ -63,7 +63,7 @@ import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
-import org.geppetto.core.model.runtime.CompositeVariableNode;
+import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.VariableNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.values.ValuesFactory;
@@ -255,11 +255,12 @@ public class JLEMSSimulatorService extends ASimulator
 					watchListModified(false);
 					for(IStateIdentifier state : results.getStates().keySet())
 					{
+						String statePath = state.getStatePath().replace("/", ".");
 						// for every state found in the results add a node in the tree
-						String fullPath = _models.get(0).getInstancePath() + "." + state.getStatePath().replace("/", ".");
+						String fullPath = watchTree.getInstancePath() + "." + statePath;
 						if(getWatchList().contains(fullPath))
 						{
-							StringTokenizer tokenizer = new StringTokenizer(fullPath, ".");
+							StringTokenizer tokenizer = new StringTokenizer(statePath, ".");
 							ACompositeNode node = watchTree;
 							while(tokenizer.hasMoreElements())
 							{
@@ -286,7 +287,7 @@ public class JLEMSSimulatorService extends ASimulator
 									if(tokenizer.hasMoreElements())
 									{
 										// not a leaf, create a composite state node
-										CompositeVariableNode newNode = new CompositeVariableNode(current);
+										CompositeNode newNode = new CompositeNode(current);
 										node.addChild(newNode);
 										node = newNode;
 									}
@@ -326,7 +327,7 @@ public class JLEMSSimulatorService extends ASimulator
 				}
 				else
 				{
-					UpdateLEMSStateTreeVisitor updateStateTreeVisitor = new UpdateLEMSStateTreeVisitor(results, _models.get(0).getInstancePath());
+					UpdateLEMSStateTreeVisitor updateStateTreeVisitor = new UpdateLEMSStateTreeVisitor(results, watchTree.getInstancePath());
 					watchTree.apply(updateStateTreeVisitor);
 					if(updateStateTreeVisitor.getError() != null)
 					{
