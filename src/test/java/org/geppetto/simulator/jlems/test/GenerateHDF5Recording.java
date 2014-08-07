@@ -44,7 +44,7 @@ import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
-import org.geppetto.core.model.state.StateTreeRoot;
+import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.lemsml.jlems.core.api.LEMSDocumentReader;
 import org.lemsml.jlems.core.api.LEMSRunConfiguration;
@@ -90,7 +90,7 @@ public class GenerateHDF5Recording
 			int step = 0;
 			while(step++ < 100)
 			{
-				simulator.simulate(null);
+				simulator.simulate(null,null);
 			}
 			writeHDF5File("hdf5test.h5", "hhcell.electrical", listener.getTree());
 		}
@@ -117,7 +117,7 @@ public class GenerateHDF5Recording
 
 	}
 
-	private static void writeHDF5File(String filename, String path, StateTreeRoot tree)
+	private static void writeHDF5File(String filename, String path, AspectSubTreeNode tree)
 	{
 
 //		try
