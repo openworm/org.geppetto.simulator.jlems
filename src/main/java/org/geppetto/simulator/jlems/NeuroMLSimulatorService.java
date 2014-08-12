@@ -32,16 +32,24 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
+import java.net.URL;
 import java.util.List;
 
+import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.IModel;
-import org.geppetto.core.model.state.StateTreeRoot;
+import org.geppetto.core.model.ModelInterpreterException;
+import org.geppetto.core.model.ModelWrapper;
+import org.geppetto.core.model.runtime.AspectNode;
+import org.geppetto.core.model.runtime.AspectSubTreeNode;
+import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
+import org.neuroml.model.NeuroMLDocument;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -52,23 +60,56 @@ import org.springframework.stereotype.Service;
 public class NeuroMLSimulatorService extends ASimulator
 {
 	
+	@Autowired
+	private SimulatorConfig neuroMLSimulatorConfig;
+	private static final String NEUROML_ID = "neuroml";
+	private static final String URL_ID = "url";
+	
+	//helper class for populating the visual tree of aspect node
+	private PopulateVisualTree populateVisualTree = new PopulateVisualTree();
+	
 	@Override
 	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
 	{
 		super.initialize(models, listener);
-		//TODO Refactor simulators to deal with more than one model!
-		_stateTree=new StateTreeRoot(models.get(0).getId());
-		getListener().stateTreeUpdated(_stateTree);
 		advanceTimeStep(0);
 	}
 
 	@Override
-	public void simulate(IRunConfiguration arg0) throws GeppettoExecutionException
+	public void simulate(IRunConfiguration arg0, AspectNode aspect) throws GeppettoExecutionException
 	{
 		advanceTimeStep(0);
 		// Do nothing
-		
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.geppetto.core.simulator.ISimulator#populateVisualTree(org.geppetto.core.model.runtime.AspectNode)
+	 */
+	@Override
+	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException {
+		
+		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
+
+		IModel model = aspectNode.getModel();
+		
+		try
+		{
+			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
+			if(neuroml != null)
+			{
+				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
+				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);					
+				populateVisualTree.createNodesFromNetwork(visualizationTree, neuroml, url);
+			}
+		}
+		catch(Exception e)
+		{
+			throw new ModelInterpreterException(e);
+		}
+		return true;
+	}
+
 
 	@Override
 	public VariableList getForceableVariables()
@@ -106,6 +147,12 @@ public class NeuroMLSimulatorService extends ASimulator
 
 	@Override
 	public String getName() {
+		return this.neuroMLSimulatorConfig.getSimulatorName();
+	}
+
+	@Override
+	public String getId()
+	{
 		// TODO Auto-generated method stub
 		return null;
 	}	

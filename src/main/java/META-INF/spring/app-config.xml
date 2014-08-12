@@ -13,6 +13,12 @@
 		
 	<!-- Add flag for Simulation Run Mode --> 
 	<bean id="jlemsSimulatorConfig" class="org.geppetto.core.beans.SimulatorConfig"> 
-		<property name="simulatorName" value="JLEMSSimulator" />
+		<property name="simulatorName" value="JLEMS Simulator" />
+		<property name="simulatorID" value="jLemsSimulator" />
+	</bean>
+	<!-- Add flag for Simulation Run Mode --> 
+	<bean id="neuroMLSimulatorConfig" class="org.geppetto.core.beans.SimulatorConfig"> 
+		<property name="simulatorName" value="NeuroML Simulator" />
+		<property name="simulatorID" value="neuroMLSimulator" />
 	</bean>
 </beans>
