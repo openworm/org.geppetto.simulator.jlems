@@ -288,6 +288,7 @@ public class JLEMSSimulatorService extends ASimulator
 									{
 										// not a leaf, create a composite state node
 										CompositeNode newNode = new CompositeNode(current);
+										newNode.setId(current);
 										node.addChild(newNode);
 										node = newNode;
 									}
@@ -295,6 +296,7 @@ public class JLEMSSimulatorService extends ASimulator
 									{
 										// it's a leaf node
 										VariableNode newNode = new VariableNode(current);
+										newNode.setId(current);
 										//commenting out until it's working
 										/*
 										Unit<? extends Quantity> unit = getUnitFromLEMSDimension(results.getStates().get(state).getDimension());
