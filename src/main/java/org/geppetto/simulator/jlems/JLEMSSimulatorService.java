@@ -249,7 +249,7 @@ public class JLEMSSimulatorService extends ASimulator
 			advanceTimeStep(_runConfig.getTimestep());
 			if(isWatching())
 			{
-				ACompositeNode watchTree = aspect.getSubTree(AspectTreeType.WATCH_TREE);
+				AspectSubTreeNode watchTree = (AspectSubTreeNode) aspect.getSubTree(AspectTreeType.WATCH_TREE);
 				if(watchTree.getChildren().isEmpty() || watchListModified())
 				{
 					watchListModified(false);
@@ -335,6 +335,8 @@ public class JLEMSSimulatorService extends ASimulator
 					{
 						throw new GeppettoExecutionException(updateStateTreeVisitor.getError());
 					}
+					
+					watchTree.setModified(true);
 				}
 			}
 		}
