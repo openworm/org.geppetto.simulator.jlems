@@ -327,6 +327,8 @@ public class JLEMSSimulatorService extends ASimulator
 							}
 						}
 					}
+					
+					watchTree.setModified(true);
 				}
 				else
 				{
