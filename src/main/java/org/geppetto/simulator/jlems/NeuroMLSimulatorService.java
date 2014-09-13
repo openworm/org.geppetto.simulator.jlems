@@ -79,7 +79,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	public void simulate(IRunConfiguration arg0, AspectNode aspect) throws GeppettoExecutionException
 	{
 		advanceTimeStep(0);
-		// Do nothing
+		notifyStateTreeUpdated();
 	}
 	
 	/*

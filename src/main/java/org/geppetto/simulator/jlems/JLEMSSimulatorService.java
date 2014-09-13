@@ -251,6 +251,7 @@ public class JLEMSSimulatorService extends ASimulator
 			if(isWatching())
 			{
 				AspectSubTreeNode watchTree = (AspectSubTreeNode) aspect.getSubTree(AspectTreeType.WATCH_TREE);
+				watchTree.setId(AspectTreeType.WATCH_TREE.toString());
 				if(watchTree.getChildren().isEmpty() || watchListModified())
 				{
 					watchListModified(false);
