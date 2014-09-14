@@ -155,7 +155,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	public String getId()
 	{
 		// TODO Auto-generated method stub
-		return null;
+		return "neuroMLSimulator";
 	}	
 
 }
