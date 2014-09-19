@@ -32,27 +32,27 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.UnmarshalException;
-
+import org.geppetto.core.model.ModelWrapper;
+import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AVisualObjectNode;
+import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
+import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
+import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.CylinderNode;
+import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.SphereNode;
 import org.geppetto.core.model.runtime.TextMetadataNode;
-import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.visualisation.model.Point;
 import org.neuroml.model.BaseCell;
 import org.neuroml.model.Cell;
-import org.neuroml.model.IafCell;
 import org.neuroml.model.Include;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
@@ -65,89 +65,23 @@ import org.neuroml.model.Population;
 import org.neuroml.model.PopulationTypes;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
-import org.neuroml.model.util.NeuroMLConverter;
 
 /**
  * Helper class to populate visualization tree for neuroml models
  * 
- * @author  Jesus R. Martinez (jesus@metacell.us)
- *
+ * @author Jesus R. Martinez (jesus@metacell.us)
+ * 
  */
 public class PopulateVisualTree
 {
 	private static final String GROUP_PROPERTY = "group";
-	private Map<String, BaseCell> _discoveredCells = new HashMap<String, BaseCell>();
+
 	private static final int MAX_ATTEMPTS = 3;
 
 	/**
-	 * @param componentId
-	 * @param url
-	 * @return
-	 */
-	private BaseCell retrieveNeuroMLCell(String componentId, URL url) throws Exception
-	{
-		if(_discoveredCells.containsKey(componentId))
-		{
-			return _discoveredCells.get(componentId);
-		}
-		NeuroMLConverter neuromlConverter = new NeuroMLConverter();
-		boolean attemptConnection = true;
-		String baseURL = url.getFile();
-		if(url.getFile().endsWith("nml"))
-		{
-			baseURL = baseURL.substring(0, baseURL.lastIndexOf("/") + 1);
-		}
-		int attempts = 0;
-		NeuroMLDocument neuromlDocument = null;
-		while(attemptConnection)
-		{
-			try
-			{
-				attemptConnection = false;
-				attempts++;
-				URL componentURL = new URL(url.getProtocol() + "://" + url.getAuthority() + baseURL + componentId + ".nml");
-
-				neuromlDocument = neuromlConverter.urlToNeuroML(componentURL);
-
-				List<Cell> cells = neuromlDocument.getCell();
-				if(cells != null)
-				{
-					for(Cell c : cells)
-					{
-						_discoveredCells.put(componentId, c);
-						if(c.getId().equals(componentId))
-						{
-							return c;
-						}
-					}
-				}
-			}
-			catch(MalformedURLException e)
-			{
-				throw e;
-			}
-			catch(UnmarshalException e)
-			{
-				if(e.getLinkedException() instanceof IOException)
-				{
-					if(attempts < MAX_ATTEMPTS)
-					{
-						attemptConnection = true;
-					}
-				}
-			}
-			catch(Exception e)
-			{
-				throw e;
-			}
-		}
-		return null;
-	}
-	
-	/**
-	 * @param allSegments 
+	 * @param allSegments
 	 * @param list
-	 * @param id 
+	 * @param id
 	 * @return
 	 */
 	private CompositeNode getVisualObjectsFromListOfSegments(List<Segment> list, String id)
@@ -169,8 +103,8 @@ public class PopulateVisualTree
 			visualGroup.setName(idSegmentParent);
 			visualGroup.addChild(getCylinderFromSegment(s, parentDistal));
 			distalPoints.put(s.getId().toString(), s.getDistal());
-		}	
-		
+		}
+
 		return visualGroup;
 	}
 
@@ -193,31 +127,22 @@ public class PopulateVisualTree
 		{
 			for(Cell c : cells)
 			{
-				_discoveredCells.put(c.getId(), c);
 				Morphology cellmorphology = c.getMorphology();
-				createNodesFromMorphologyBySegmentGroup(visualizationTree,cellmorphology,c.getId());
-			}
-		}
-		List<IafCell> iafCells = neuroml.getIafCell();
-		if(iafCells != null)
-		{
-			for(IafCell iafCell : iafCells)
-			{
-				_discoveredCells.put(iafCell.getId(), iafCell);
+				createNodesFromMorphologyBySegmentGroup(visualizationTree, cellmorphology, c.getId());
 			}
 		}
 	}
 
 	/**
 	 * @param c
-	 * @param id 
+	 * @param id
 	 * @return
 	 */
-	private AVisualObjectNode getEntityNodefromCell(BaseCell c, String id)
+	private AVisualObjectNode getVisualObjectForCell(BaseCell c, String id)
 	{
 		SphereNode sphere = new SphereNode(id);
 		sphere.setRadius(1d);
-		Point origin=new Point();
+		Point origin = new Point();
 		origin.setX(0d);
 		origin.setY(0d);
 		origin.setZ(0d);
@@ -225,7 +150,7 @@ public class PopulateVisualTree
 		sphere.setId(id);
 		return sphere;
 	}
-	
+
 	/**
 	 * @param neuroml
 	 * @param scene
@@ -234,108 +159,194 @@ public class PopulateVisualTree
 	 */
 	public void createNodesFromNetwork(AspectSubTreeNode visualizationTree, NeuroMLDocument neuroml, URL url) throws Exception
 	{
-		Map<String, AVisualObjectNode> objects = new HashMap<String, AVisualObjectNode>();
+		AspectNode aspect = (AspectNode) visualizationTree.getParent();
 		List<Network> networks = neuroml.getNetwork();
-
-		for(Network n : networks)
+		if(networks.size() == 1)
 		{
-			CompositeNode networkNode = new CompositeNode(n.getId());
-			
-			for(Population p : n.getPopulation())
+			addNetworkTo(networks.get(0), visualizationTree, aspect);
+		}
+		else
+		{
+			for(Network n : networks)
 			{
-				BaseCell cell = retrieveNeuroMLCell(p.getComponent(), url);
+				CompositeNode networkNode = new CompositeNode(n.getId(), n.getId());
+				addNetworkTo(networks.get(0), networkNode, aspect);
+			}
+		}
+	}
 
-				if(p.getType() != null && p.getType().equals(PopulationTypes.POPULATION_LIST))
+	/**
+	 * @param n
+	 * @param composite
+	 * @param aspect
+	 */
+	private void addNetworkTo(Network n, ACompositeNode composite, AspectNode aspect)
+	{
+		for(Population p : n.getPopulation())
+		{
+			ModelWrapper model = (ModelWrapper) aspect.getModel();
+			// the components have already been read by the model interpreter and stored inside a map in the ModelWrapper
+			BaseCell cell = getNeuroMLComponent(p.getComponent(), model);
+
+			if(p.getType() != null && p.getType().equals(PopulationTypes.POPULATION_LIST))
+			{
+				int i = 0;
+				for(Instance instance : p.getInstance())
 				{
-					int i = 0;
-					for(Instance instance : p.getInstance())
-					{
-						AVisualObjectNode e = getEntityNodefromCell(cell, p.getId());
+					AVisualObjectNode visualObject = getVisualObjectForCell(cell, p.getId());
 
-						if(instance.getLocation() != null)
-						{
-							e.setPosition(getPoint(instance.getLocation()));
-						}
-						if(p.getInstance().size()>1)
-						{
-							e.setId(p.getId()+"["+i+"]");
-						}
-						else
-						{
-							e.setId(p.getId());
-						}						
-						objects.put(e.getId(), e);
-						networkNode.addChild(e);
+					if(instance.getLocation() != null)
+					{
+						visualObject.setPosition(getPoint(instance.getLocation()));
 					}
-					i++;
+					if(p.getInstance().size() > 1)
+					{
+						visualObject.setId(p.getId() + "[" + i + "]");
+					}
+					else
+					{
+						visualObject.setId(p.getId());
+					}
+					addVisualObjectToVizTree(p.getId(), visualObject, composite, aspect, model);
 
 				}
-				else
+				i++;
+			}
+			else
+			{
+				int size = p.getSize().intValue();
+
+				for(int i = 0; i < size; i++)
 				{
-					int size = p.getSize().intValue();
+					// FIXME the position of the population within the network needs to be specified in neuroml
+					AVisualObjectNode visualObject = getVisualObjectForCell(cell, cell.getId());
+					visualObject.setId(visualObject.getId() + "[" + i + "]");
+					addVisualObjectToVizTree(p.getId(), visualObject, composite, aspect, model);
+				}
+			}
+		}
 
-					for(int i = 0; i < size; i++)
+	}
+
+
+	/**
+	 * @param id
+	 * @param visualObject
+	 * @param composite
+	 * @param aspect
+	 * @param model
+	 */
+	private void addVisualObjectToVizTree(String id, AVisualObjectNode visualObject, ACompositeNode composite, AspectNode aspect, ModelWrapper model)
+	{
+
+		Map<String, EntityNode> entitiesMapping = (Map<String, EntityNode>) model.getModel("entitiesMapping");
+		if(entitiesMapping.containsKey(id))
+		{
+			EntityNode e = entitiesMapping.get(id);
+			for(AspectNode a : e.getAspects())
+			{
+				if(a.getId().equals(aspect.getId()))
+				{
+					// we are in the same aspect of the subentity, now we can fetch the visualization tree
+					AspectSubTreeNode subEntityVizTree = a.getSubTree(AspectTreeType.VISUALIZATION_TREE);
+					if(composite instanceof AspectSubTreeNode)
 					{
-						// FIXME the position of the population within the network needs to be specified in neuroml
-						AVisualObjectNode e = getEntityNodefromCell(cell, cell.getId());
-
-						e.setId(e.getId() + "[" + i + "]");
-						objects.put(e.getId(), e);
-						networkNode.addChild(e);
+						subEntityVizTree.addChild(visualObject);
+					}
+					else if(composite instanceof CompositeNode)
+					{
+						getCompositeNode(subEntityVizTree, composite.getId()).addChild(visualObject);
 					}
 				}
 			}
-			
-			visualizationTree.addChild(networkNode);
 		}
+		else
+		{
+			composite.addChild(visualObject);
+		}
+
 	}
-	
+
+	/**
+	 * @param subEntityVizTree
+	 * @param compositeId
+	 * @return
+	 */
+	private CompositeNode getCompositeNode(AspectSubTreeNode subEntityVizTree, String compositeId)
+	{
+		for(ANode child:subEntityVizTree.getChildren())
+		{
+			if(child.getId().equals(compositeId) && child instanceof CompositeNode)
+			{
+				return (CompositeNode) child;
+			}
+		}
+		CompositeNode composite=new CompositeNode(compositeId,compositeId);
+		subEntityVizTree.addChild(composite);
+		return composite;
+	}
+
+	/**
+	 * @param componentId
+	 * @param model
+	 * @return
+	 */
+	private BaseCell getNeuroMLComponent(String componentId, ModelWrapper model)
+	{
+		Map<String, BaseCell> discoveredComponents = (Map<String, BaseCell>) model.getModel("discoveredComponents");
+		if(discoveredComponents.containsKey(componentId))
+		{
+			return discoveredComponents.get(componentId);
+		}
+		return null;
+	}
+
 	/**
 	 * @param somaGroup
 	 * @param segmentGeometries
 	 */
 	private void createVisualModelForMacroGroup(SegmentGroup macroGroup, Map<String, List<AVisualObjectNode>> segmentGeometries, List<AVisualObjectNode> allSegments)
-	{	
-		//TODO: This method was part of previous visualizer but wasn't used, leaving here in case is needed
-		
-//		TextMetadataNode text = new TextMetadataNode();
-//		text.setAdditionalProperty(GROUP_PROPERTY, macroGroup.getId());
-//		visualModel.addChild(text);
-//		
-//		for(Include i : macroGroup.getInclude())
-//		{
-//			if(segmentGeometries.containsKey(i.getSegmentGroup()))
-//			{
-//				visualModel.getObjects().addAll(segmentGeometries.get(i.getSegmentGroup()));
-//			}
-//		}
-//		for(Member m : macroGroup.getMember())
-//		{
-//			for(AVisualObjectNode g : allSegments)
-//			{
-//				if(g.getId().equals(m.getSegment().toString()))
-//				{
-//					visualModel.getObjects().add(g);
-//					allSegments.remove(g);
-//					break;
-//				}
-//			}
-//		}
-//		segmentGeometries.remove(macroGroup.getId());
-//		return visualModel;
+	{
+		// TODO: This method was part of previous visualizer but wasn't used, leaving here in case is needed
+
+		// TextMetadataNode text = new TextMetadataNode();
+		// text.setAdditionalProperty(GROUP_PROPERTY, macroGroup.getId());
+		// visualModel.addChild(text);
+		//
+		// for(Include i : macroGroup.getInclude())
+		// {
+		// if(segmentGeometries.containsKey(i.getSegmentGroup()))
+		// {
+		// visualModel.getObjects().addAll(segmentGeometries.get(i.getSegmentGroup()));
+		// }
+		// }
+		// for(Member m : macroGroup.getMember())
+		// {
+		// for(AVisualObjectNode g : allSegments)
+		// {
+		// if(g.getId().equals(m.getSegment().toString()))
+		// {
+		// visualModel.getObjects().add(g);
+		// allSegments.remove(g);
+		// break;
+		// }
+		// }
+		// }
+		// segmentGeometries.remove(macroGroup.getId());
+		// return visualModel;
 	}
 
 	/**
-	 * @param visualizationTree 
+	 * @param visualizationTree
 	 * @param list
 	 * @return
 	 */
 	private void createNodesFromMorphologyBySegmentGroup(AspectSubTreeNode visualizationTree, Morphology cellmorphology, String cellId)
-	{		
+	{
 		CompositeNode cellNode = new CompositeNode(cellId);
 
 		CompositeNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(), cellmorphology.getId());
-		
+
 		Map<String, List<AVisualObjectNode>> segmentGeometries = new HashMap<String, List<AVisualObjectNode>>();
 
 		if(!cellmorphology.getSegmentGroup().isEmpty())
@@ -362,20 +373,20 @@ public class PopulateVisualTree
 				for(AVisualObjectNode vo : segmentGeometries.get(sg))
 				{
 					TextMetadataNode text = new TextMetadataNode();
-					text.setAdditionalProperty("segment_groups", getAllGroupsString(sg, subgroupsMap, ""));	
+					text.setAdditionalProperty("segment_groups", getAllGroupsString(sg, subgroupsMap, ""));
 				}
 			}
 
 			// this adds all segment groups not contained in the macro groups if any
 			for(String sgId : segmentGeometries.keySet())
-			{								
+			{
 				List<AVisualObjectNode> segments = segmentGeometries.get(sgId);
-				
+
 				cellNode.getChildren().addAll(segments);
 			}
 
 		}
-		
+
 		visualizationTree.addChild(cellNode);
 	}
 
@@ -410,7 +421,6 @@ public class PopulateVisualTree
 		return cellId + "." + segmentGroupId;
 	}
 
-
 	/**
 	 * @param sg
 	 * @param allSegments
@@ -422,8 +432,8 @@ public class PopulateVisualTree
 		for(Member m : sg.getMember())
 		{
 			List<ANode> segments = allSegments.getChildren();
-			
-			for(ANode g : segments )
+
+			for(ANode g : segments)
 			{
 				if(((AVisualObjectNode) g).getId().equals(m.getSegment().toString()))
 				{
@@ -434,7 +444,6 @@ public class PopulateVisualTree
 		return geometries;
 	}
 
-	
 	/**
 	 * @param p1
 	 * @param p2
