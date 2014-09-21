@@ -32,8 +32,13 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
+import java.util.Map;
+
 import org.geppetto.core.model.quantities.PhysicalQuantity;
+import org.geppetto.core.model.runtime.AspectNode;
+import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.VariableNode;
+import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.state.visitors.DefaultStateVisitor;
 import org.geppetto.core.model.values.DoubleValue;
 import org.lemsml.jlems.core.api.ALEMSValue;
@@ -47,23 +52,62 @@ import org.lemsml.jlems.core.api.interfaces.ILEMSResultsContainer;
  * This method updates the particles already present in the tree
  * adding new values as found on the position pointer
  */
-public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
+public class UpdateLEMSimulationTreeVisitor extends DefaultStateVisitor
 {
 
 	private ILEMSResultsContainer _lemsResults;
-	private String _instancePath;
 	private String _errorMessage=null;
+	private Map<String, String> _geppettoToLems;
+	private AspectNode _aspect;
+	private boolean _modifiedSimulationTree=false;
 
-	public UpdateLEMSStateTreeVisitor(ILEMSResultsContainer lemsResults,String instancePath)
+
+	public UpdateLEMSimulationTreeVisitor(ILEMSResultsContainer lemsResults,AspectNode aspect, Map<String, String> geppettoToLems)
 	{
 		_lemsResults=lemsResults;
-		_instancePath=instancePath;
+		_geppettoToLems=geppettoToLems;
+		_aspect=aspect;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.geppetto.core.model.state.visitors.DefaultStateVisitor#inAspectNode(org.geppetto.core.model.runtime.AspectNode)
+	 */
+	@Override
+	public boolean inAspectNode(AspectNode node)
+	{
+		//we only visit the nodes which belong to the same aspect
+		if( node.getId().equals(_aspect.getId()))
+		{
+			return super.inAspectNode(node);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.geppetto.core.model.state.visitors.DefaultStateVisitor#outAspectSubTreeNode(org.geppetto.core.model.runtime.AspectSubTreeNode)
+	 */
+	@Override
+	public boolean outAspectSubTreeNode(AspectSubTreeNode node)
+	{
+		if(node.getType().equals(AspectTreeType.WATCH_TREE) && _modifiedSimulationTree)
+		{
+			node.setModified(true);
+			_modifiedSimulationTree=false;
+		}
+		return super.outAspectSubTreeNode(node);
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.geppetto.core.model.state.visitors.DefaultStateVisitor#visitVariableNode(org.geppetto.core.model.runtime.VariableNode)
+	 */
 	@Override
 	public boolean visitVariableNode(VariableNode node)
 	{
-		String lemsState=node.getInstancePath().replace(_instancePath+".", "").replace(".", "/");
+		String lemsState=_geppettoToLems.get(node.getInstancePath()).replace(".","/");
 		StateIdentifier stateId=new StateIdentifier(lemsState);
 		if(!_lemsResults.getStates().containsKey(stateId))
 		{
@@ -75,6 +119,7 @@ public class UpdateLEMSStateTreeVisitor extends DefaultStateVisitor
 			PhysicalQuantity quantity = new PhysicalQuantity();
 			quantity.setValue(new DoubleValue(((LEMSDoubleValue)lemsValue).getAsDouble()));
 			node.addPhysicalQuantity(quantity);
+			_modifiedSimulationTree=true;
 		}
 		return super.visitVariableNode(node);
 	}

@@ -66,7 +66,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	private static final String URL_ID = "url";
 	
 	//helper class for populating the visual tree of aspect node
-	private PopulateVisualTree populateVisualTree = new PopulateVisualTree();
+	private PopulateVisualTreeVisitor populateVisualTree = new PopulateVisualTreeVisitor();
 	
 	@Override
 	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException

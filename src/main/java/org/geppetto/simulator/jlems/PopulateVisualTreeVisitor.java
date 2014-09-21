@@ -50,6 +50,7 @@ import org.geppetto.core.model.runtime.CylinderNode;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.SphereNode;
 import org.geppetto.core.model.runtime.TextMetadataNode;
+import org.geppetto.core.utilities.VariablePathSerializer;
 import org.geppetto.core.visualisation.model.Point;
 import org.neuroml.model.BaseCell;
 import org.neuroml.model.Cell;
@@ -72,12 +73,8 @@ import org.neuroml.model.SegmentGroup;
  * @author Jesus R. Martinez (jesus@metacell.us)
  * 
  */
-public class PopulateVisualTree
+public class PopulateVisualTreeVisitor
 {
-	private static final String GROUP_PROPERTY = "group";
-
-	private static final int MAX_ATTEMPTS = 3;
-
 	/**
 	 * @param allSegments
 	 * @param list
@@ -199,15 +196,8 @@ public class PopulateVisualTree
 					{
 						visualObject.setPosition(getPoint(instance.getLocation()));
 					}
-					if(p.getInstance().size() > 1)
-					{
-						visualObject.setId(p.getId() + "[" + i + "]");
-					}
-					else
-					{
-						visualObject.setId(p.getId());
-					}
-					addVisualObjectToVizTree(p.getId(), visualObject, composite, aspect, model);
+					visualObject.setId(p.getId());
+					addVisualObjectToVizTree(VariablePathSerializer.getArrayName(p.getId(), i), visualObject, composite, aspect, model);
 
 				}
 				i++;
@@ -220,14 +210,13 @@ public class PopulateVisualTree
 				{
 					// FIXME the position of the population within the network needs to be specified in neuroml
 					AVisualObjectNode visualObject = getVisualObjectForCell(cell, cell.getId());
-					visualObject.setId(visualObject.getId() + "[" + i + "]");
-					addVisualObjectToVizTree(p.getId(), visualObject, composite, aspect, model);
+					visualObject.setId(cell.getId());
+					addVisualObjectToVizTree(VariablePathSerializer.getArrayName(p.getId(), i), visualObject, composite, aspect, model);
 				}
 			}
 		}
 
 	}
-
 
 	/**
 	 * @param id
@@ -274,14 +263,14 @@ public class PopulateVisualTree
 	 */
 	private CompositeNode getCompositeNode(AspectSubTreeNode subEntityVizTree, String compositeId)
 	{
-		for(ANode child:subEntityVizTree.getChildren())
+		for(ANode child : subEntityVizTree.getChildren())
 		{
 			if(child.getId().equals(compositeId) && child instanceof CompositeNode)
 			{
 				return (CompositeNode) child;
 			}
 		}
-		CompositeNode composite=new CompositeNode(compositeId,compositeId);
+		CompositeNode composite = new CompositeNode(compositeId, compositeId);
 		subEntityVizTree.addChild(composite);
 		return composite;
 	}
@@ -409,16 +398,6 @@ public class PopulateVisualTree
 			return allGroupsString.toString();
 		}
 		return allGroupsStringp.trim();
-	}
-
-	/**
-	 * @param cellId
-	 * @param segmentGroupId
-	 * @return
-	 */
-	private String getGroupId(String cellId, String segmentGroupId)
-	{
-		return cellId + "." + segmentGroupId;
 	}
 
 	/**
