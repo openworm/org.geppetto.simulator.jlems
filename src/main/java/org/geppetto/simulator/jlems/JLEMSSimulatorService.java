@@ -194,13 +194,16 @@ public class JLEMSSimulatorService extends ASimulator
 		IModel model = aspectNode.getModel();
 		try
 		{
-			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
-			if(neuroml != null)
+			if(((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID) instanceof NeuroMLDocument)
 			{
-				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
-				_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);
-				_populateVisualTree.createNodesFromNetwork(visualizationTree, neuroml, url);
-				visualizationTree.setModified(true);
+				NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
+				if(neuroml != null)
+				{
+					URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
+					_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);
+					_populateVisualTree.createNodesFromNetwork(visualizationTree, neuroml, url);
+					visualizationTree.setModified(true);
+				}
 			}
 		}
 		catch(Exception e)
@@ -367,7 +370,10 @@ public class JLEMSSimulatorService extends ASimulator
 		while(st.hasMoreTokens())
 		{
 			if(nt1 == "") nt1 = st.nextToken();
-			if(nt2 == "") nt2 = st.nextToken();
+			if(st.hasMoreTokens())
+			{
+				if(nt2 == "") nt2 = st.nextToken();
+			}
 			for(ANode e : parentEntity.getChildren())
 			{
 				if(e.getId().equals(nt1))
