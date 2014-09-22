@@ -123,6 +123,7 @@ public class JLEMSSimulatorService extends ASimulator
 	private PopulateVisualTreeVisitor _populateVisualTree = new PopulateVisualTreeVisitor();
 	private Map<String, String> _lemsToGeppetto = new HashMap<String, String>();
 	private Map<String, String> _geppettoToLems = new HashMap<String, String>();
+	
 
 	/*
 	 * (non-Javadoc)
@@ -265,7 +266,7 @@ public class JLEMSSimulatorService extends ASimulator
 		advanceTimeStep(_runConfig.getTimestep());
 		if(isWatching())
 		{
-			if(watchListModified())
+			if(watchListModified() || treesEmptied())
 			{
 				watchListModified(false);
 				for(IStateIdentifier state : results.getStates().keySet())
@@ -340,6 +341,7 @@ public class JLEMSSimulatorService extends ASimulator
 						}
 					}
 				}
+				treesEmptied(false);
 
 			}
 			else
@@ -353,6 +355,8 @@ public class JLEMSSimulatorService extends ASimulator
 			}
 		}
 	}
+
+
 
 	/**
 	 * @param statePath
