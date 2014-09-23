@@ -66,7 +66,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	private static final String URL_ID = "url";
 	
 	//helper class for populating the visual tree of aspect node
-	private PopulateVisualTree populateVisualTree = new PopulateVisualTree();
+	private PopulateVisualTreeVisitor populateVisualTree = new PopulateVisualTreeVisitor();
 	
 	@Override
 	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
@@ -79,7 +79,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	public void simulate(IRunConfiguration arg0, AspectNode aspect) throws GeppettoExecutionException
 	{
 		advanceTimeStep(0);
-		// Do nothing
+		notifyStateTreeUpdated();
 	}
 	
 	/*
@@ -101,6 +101,7 @@ public class NeuroMLSimulatorService extends ASimulator
 				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
 				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);					
 				populateVisualTree.createNodesFromNetwork(visualizationTree, neuroml, url);
+				visualizationTree.setModified(true);
 			}
 		}
 		catch(Exception e)
@@ -154,7 +155,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	public String getId()
 	{
 		// TODO Auto-generated method stub
-		return null;
+		return "neuroMLSimulator";
 	}	
 
 }

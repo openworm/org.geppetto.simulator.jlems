@@ -36,7 +36,9 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.measure.quantity.Quantity;
@@ -63,13 +65,15 @@ import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
-import org.geppetto.core.model.runtime.CompositeNode;
-import org.geppetto.core.model.runtime.VariableNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
+import org.geppetto.core.model.runtime.CompositeNode;
+import org.geppetto.core.model.runtime.EntityNode;
+import org.geppetto.core.model.runtime.VariableNode;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
+import org.geppetto.core.utilities.VariablePathSerializer;
 import org.lemsml.jlems.core.api.ALEMSValue;
 import org.lemsml.jlems.core.api.LEMSBuildConfiguration;
 import org.lemsml.jlems.core.api.LEMSBuildException;
@@ -112,11 +116,14 @@ public class JLEMSSimulatorService extends ASimulator
 
 	@Autowired
 	private SimulatorConfig jlemsSimulatorConfig;
-	
+
 	private static final String NEUROML_ID = "neuroml";
 	private static final String URL_ID = "url";
+
+	private PopulateVisualTreeVisitor _populateVisualTree = new PopulateVisualTreeVisitor();
+	private Map<String, String> _lemsToGeppetto = new HashMap<String, String>();
+	private Map<String, String> _geppettoToLems = new HashMap<String, String>();
 	
-	private PopulateVisualTree populateVisualTree = new PopulateVisualTree();
 
 	/*
 	 * (non-Javadoc)
@@ -151,7 +158,7 @@ public class JLEMSSimulatorService extends ASimulator
 			{
 				_simulator.initialize(instance, _runConfig);
 			}
-			
+
 			this.notifyStateTreeUpdated();
 			setWatchableVariables();
 		}
@@ -173,43 +180,54 @@ public class JLEMSSimulatorService extends ASimulator
 		}
 		_logger.info("jLEMS Simulator initialized");
 	}
-	
+
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.geppetto.core.simulator.ISimulator#populateVisualTree(org.geppetto.core.model.runtime.AspectNode)
 	 */
 	@Override
-	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException, GeppettoExecutionException {
-		
+	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException, GeppettoExecutionException
+	{
+
 		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
 
 		IModel model = aspectNode.getModel();
 		try
 		{
-			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
-			if(neuroml != null)
+			if(((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID) instanceof NeuroMLDocument)
 			{
-				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
-				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);	
-				populateVisualTree.createNodesFromNetwork(visualizationTree, neuroml, url);
+				NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
+				if(neuroml != null)
+				{
+					URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
+					_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);
+					_populateVisualTree.createNodesFromNetwork(visualizationTree, neuroml, url);
+					visualizationTree.setModified(true);
+				}
 			}
 		}
 		catch(Exception e)
 		{
 			throw new ModelInterpreterException(e);
-		}			
-		
+		}
+
 		notifyStateTreeUpdated();
 
 		return true;
 	}
 
-
+	/**
+	 * @return
+	 */
 	public ILEMSRunConfiguration getRunConfig()
 	{
 		return _runConfig;
 	}
 
+	/**
+	 * @param runConfig
+	 */
 	public void setRunConfig(ILEMSRunConfiguration runConfig)
 	{
 		this._runConfig = runConfig;
@@ -244,102 +262,183 @@ public class JLEMSSimulatorService extends ASimulator
 	 */
 	private void updateSimulationTree(ILEMSResultsContainer results, AspectNode aspect) throws GeppettoExecutionException
 	{
-		try
+
+		advanceTimeStep(_runConfig.getTimestep());
+		if(isWatching())
 		{
-			advanceTimeStep(_runConfig.getTimestep());
-			if(isWatching())
+			if(watchListModified() || treesEmptied())
 			{
-				ACompositeNode watchTree = aspect.getSubTree(AspectTreeType.WATCH_TREE);
-				if(watchTree.getChildren().isEmpty() || watchListModified())
+				watchListModified(false);
+				for(IStateIdentifier state : results.getStates().keySet())
 				{
-					watchListModified(false);
-					for(IStateIdentifier state : results.getStates().keySet())
+					String statePath = state.getStatePath().replace("/", ".");
+					AspectSubTreeNode simulationTree = getSimulationTreeFor(statePath, aspect.getSubTree(AspectTreeType.WATCH_TREE));
+					simulationTree.setModified(true);
+					// for every state found in the results add a node in the tree
+					String fullPath = _lemsToGeppetto.get(statePath);
+					if(getWatchList().contains(fullPath))
 					{
-						String statePath = state.getStatePath().replace("/", ".");
-						// for every state found in the results add a node in the tree
-						String fullPath = watchTree.getInstancePath() + "." + statePath;
-						if(getWatchList().contains(fullPath))
+						String post = fullPath.replace(simulationTree.getInstancePath(), "");
+						StringTokenizer tokenizer = new StringTokenizer(post, ".");
+						ACompositeNode node = simulationTree;
+						while(tokenizer.hasMoreElements())
 						{
-							StringTokenizer tokenizer = new StringTokenizer(statePath, ".");
-							ACompositeNode node = watchTree;
-							while(tokenizer.hasMoreElements())
+							String current = tokenizer.nextToken();
+							boolean found = false;
+							for(ANode child : node.getChildren())
 							{
-								String current = tokenizer.nextToken();
-								boolean found = false;
-								for(ANode child : node.getChildren())
+								if(child.getName().equals(current))
 								{
-									if(child.getName().equals(current))
+									if(child instanceof ACompositeNode)
 									{
-										if(child instanceof ACompositeNode)
-										{
-											node = (ACompositeNode) child;
-										}
-										found = true;
-										break;
+										node = (ACompositeNode) child;
 									}
+									found = true;
+									break;
 								}
-								if(found)
+							}
+							if(found)
+							{
+								continue;
+							}
+							else
+							{
+								if(tokenizer.hasMoreElements())
 								{
-									continue;
+									// not a leaf, create a composite state node
+									CompositeNode newNode = new CompositeNode(current);
+									newNode.setId(current);
+									node.addChild(newNode);
+									node = newNode;
 								}
 								else
 								{
-									if(tokenizer.hasMoreElements())
+									// it's a leaf node
+									VariableNode newNode = new VariableNode(current);
+									newNode.setId(current);
+									// commenting out until it's working
+									/*
+									 * Unit<? extends Quantity> unit = getUnitFromLEMSDimension(results.getStates().get(state).getDimension()); newNode.setUnit(unit.toString());
+									 * 
+									 * UnitConverter r = unit.getConverterTo(unit.getStandardUnit());
+									 * 
+									 * long factor = 0; if(r instanceof RationalConverter ){ factor = ((RationalConverter) r).getDivisor(); }
+									 * 
+									 * newNode.setScalingFactor(_df.format(factor));
+									 */
+									ALEMSValue lemsValue = results.getStates().get(state).getLastValue();
+									if(lemsValue instanceof LEMSDoubleValue)
 									{
-										// not a leaf, create a composite state node
-										CompositeNode newNode = new CompositeNode(current);
-										node.addChild(newNode);
-										node = newNode;
-									}
-									else
-									{
-										// it's a leaf node
-										VariableNode newNode = new VariableNode(current);
-										//commenting out until it's working
-										/*
-										Unit<? extends Quantity> unit = getUnitFromLEMSDimension(results.getStates().get(state).getDimension());
-										newNode.setUnit(unit.toString());
-										
-										UnitConverter r = unit.getConverterTo(unit.getStandardUnit());
+										PhysicalQuantity quantity = new PhysicalQuantity();
+										LEMSDoubleValue db = (LEMSDoubleValue) lemsValue;
 
-										long factor = 0; 
-										if(r instanceof RationalConverter ){
-											factor = ((RationalConverter) r).getDivisor();
-										}
-										
-										newNode.setScalingFactor(_df.format(factor));
-										*/
-										ALEMSValue lemsValue = results.getStates().get(state).getLastValue();
-										if(lemsValue instanceof LEMSDoubleValue)
-										{
-											PhysicalQuantity quantity = new PhysicalQuantity();
-											LEMSDoubleValue db = (LEMSDoubleValue)lemsValue;
-											
-											quantity.setValue(ValuesFactory.getDoubleValue(db.getAsDouble()));
-											newNode.addPhysicalQuantity(quantity);
-										}
-										node.addChild(newNode);
+										quantity.setValue(ValuesFactory.getDoubleValue(db.getAsDouble()));
+										newNode.addPhysicalQuantity(quantity);
 									}
+									node.addChild(newNode);
 								}
 							}
 						}
 					}
 				}
-				else
+				treesEmptied(false);
+
+			}
+			else
+			{
+				UpdateLEMSimulationTreeVisitor updateStateTreeVisitor = new UpdateLEMSimulationTreeVisitor(results, aspect, _geppettoToLems);
+				aspect.getParent().apply(updateStateTreeVisitor);
+				if(updateStateTreeVisitor.getError() != null)
 				{
-					UpdateLEMSStateTreeVisitor updateStateTreeVisitor = new UpdateLEMSStateTreeVisitor(results, watchTree.getInstancePath());
-					watchTree.apply(updateStateTreeVisitor);
-					if(updateStateTreeVisitor.getError() != null)
-					{
-						throw new GeppettoExecutionException(updateStateTreeVisitor.getError());
-					}
+					throw new GeppettoExecutionException(updateStateTreeVisitor.getError());
 				}
 			}
 		}
-		catch(Exception e)
+	}
+
+
+
+	/**
+	 * @param statePath
+	 * @param simulationTree
+	 * @return
+	 */
+	private AspectSubTreeNode getSimulationTreeFor(String statePath, AspectSubTreeNode simulationTree)
+	{
+		StringTokenizer st = new StringTokenizer(statePath, ".");
+		AspectNode parentAspect = (AspectNode) simulationTree.getParent();
+		EntityNode parentEntity = (EntityNode) parentAspect.getParent();
+
+		String pre = "";
+		String nt1 = "", nt2 = "";
+		while(st.hasMoreTokens())
 		{
-			throw new GeppettoExecutionException(e);
+			if(nt1 == "") nt1 = st.nextToken();
+			if(st.hasMoreTokens())
+			{
+				if(nt2 == "") nt2 = st.nextToken();
+			}
+			for(ANode e : parentEntity.getChildren())
+			{
+				if(e.getId().equals(nt1))
+				{
+					if(pre != "")
+					{
+						pre += ".";
+					}
+					pre += nt1;
+					parentEntity = (EntityNode) e;
+					nt1 = nt2;
+					nt2 = "";
+					break;
+				}
+				else if(e.getId().equals(VariablePathSerializer.getArrayName(nt1, nt2)) && isNumeric(nt2))
+				{
+					if(pre != "")
+					{
+						pre += ".";
+					}
+					pre += nt1 + "." + nt2;
+					parentEntity = (EntityNode) e;
+					nt1 = nt2 = "";
+					break;
+				}
+			}
+			for(AspectNode a : parentEntity.getAspects())
+			{
+				if(a.getId().equals(parentAspect.getId()))
+				{
+					String post = statePath.substring(statePath.indexOf(pre) + pre.length());
+					if(post.charAt(0) == '.')
+					{
+						post = post.substring(1);
+					}
+					_lemsToGeppetto.put(statePath, a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post);
+					_geppettoToLems.put(a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post, statePath);
+					return a.getSubTree(AspectTreeType.WATCH_TREE);
+				}
+			}
+			return null;
 		}
+
+		return null;
+	}
+
+	/**
+	 * @param str
+	 * @return
+	 */
+	public static boolean isNumeric(String str)
+	{
+		try
+		{
+			double d = Integer.parseInt(str);
+		}
+		catch(NumberFormatException nfe)
+		{
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -361,32 +460,32 @@ public class JLEMSSimulatorService extends ASimulator
 		float length = getDecimalNumber(Integer.parseInt(st.nextToken()));
 		if(length != 0)
 		{
-			resultingUnit = resultingUnit.times(getUnit(length,SI.METER));
+			resultingUnit = resultingUnit.times(getUnit(length, SI.METER));
 		}
 		float time = getDecimalNumber(Integer.parseInt(st.nextToken()));
 		if(time != 0)
 		{
-			resultingUnit = resultingUnit.times(getUnit(time,SI.SECOND));
+			resultingUnit = resultingUnit.times(getUnit(time, SI.SECOND));
 		}
 		float current = getDecimalNumber(Integer.parseInt(st.nextToken()));
 		if(current != 0)
 		{
-			resultingUnit = resultingUnit.times(getUnit(current,SI.AMPERE));
+			resultingUnit = resultingUnit.times(getUnit(current, SI.AMPERE));
 		}
 		float temperature = getDecimalNumber(Integer.parseInt(st.nextToken()));
 		if(temperature != 0)
 		{
-			resultingUnit = resultingUnit.times(getUnit(temperature,SI.CELSIUS));
+			resultingUnit = resultingUnit.times(getUnit(temperature, SI.CELSIUS));
 		}
 		float amount = getDecimalNumber(Integer.parseInt(st.nextToken()));
 		if(amount != 0)
 		{
-			resultingUnit = resultingUnit.times(getUnit(amount,SI.MOLE));
+			resultingUnit = resultingUnit.times(getUnit(amount, SI.MOLE));
 		}
 		float brightness = getDecimalNumber(Integer.parseInt(st.nextToken()));
 		if(brightness != 0)
 		{
-			resultingUnit = resultingUnit.times(getUnit(brightness,SI.CANDELA));
+			resultingUnit = resultingUnit.times(getUnit(brightness, SI.CANDELA));
 		}
 		return resultingUnit;
 	}
@@ -426,7 +525,7 @@ public class JLEMSSimulatorService extends ASimulator
 				return unit.times(scaling);
 		}
 	}
-	
+
 	/**
 	 * @param noZeros
 	 * @return
