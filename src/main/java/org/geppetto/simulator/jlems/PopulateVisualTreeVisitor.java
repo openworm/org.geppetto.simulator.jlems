@@ -83,7 +83,7 @@ public class PopulateVisualTreeVisitor
 	 */
 	private CompositeNode getVisualObjectsFromListOfSegments(List<Segment> list, String id)
 	{
-		CompositeNode visualGroup = new CompositeNode();
+		CompositeNode visualGroup = new CompositeNode(id);
 		Map<String, Point3DWithDiam> distalPoints = new HashMap<String, Point3DWithDiam>();
 		for(Segment s : list)
 		{
