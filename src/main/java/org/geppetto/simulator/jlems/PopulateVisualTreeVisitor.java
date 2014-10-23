@@ -365,8 +365,8 @@ public class PopulateVisualTreeVisitor
 			{
 				for(AVisualObjectNode vo : segmentGeometries.get(sg))
 				{
-					TextMetadataNode text = new TextMetadataNode();
-					text.setAdditionalProperty("segment_groups", getAllGroupsString(sg, subgroupsMap, ""));
+					TextMetadataNode text = new TextMetadataNode("segment_groups");
+					text.setAdditionalProperties("segment_groups", getAllGroupsString(sg, subgroupsMap, ""));
 				}
 			}
 
