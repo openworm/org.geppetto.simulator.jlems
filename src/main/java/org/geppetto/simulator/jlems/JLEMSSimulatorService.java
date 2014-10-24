@@ -421,7 +421,7 @@ public class JLEMSSimulatorService extends ASimulator
 						post = post.substring(1);
 					}
 					//We replace the pattern .digits. with [digits] as Geppetto doesn't support nodes that have numbers as names
-					post = statePath.replaceAll("\\.(\\d*)\\.", "\\[$1\\]\\.");
+					post = post.replaceAll("\\.(\\d*)\\.", "\\[$1\\]\\.");
 					_lemsToGeppetto.put(statePath, a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post);
 					_geppettoToLems.put(a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post, statePath);
 					return a.getSubTree(AspectTreeType.WATCH_TREE);
