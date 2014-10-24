@@ -50,6 +50,7 @@ import org.geppetto.core.model.runtime.CylinderNode;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.SphereNode;
 import org.geppetto.core.model.runtime.TextMetadataNode;
+import org.geppetto.core.model.runtime.VisualObjectReferenceNode;
 import org.geppetto.core.utilities.VariablePathSerializer;
 import org.geppetto.core.visualisation.model.Point;
 import org.neuroml.model.BaseCell;
@@ -98,7 +99,9 @@ public class PopulateVisualTreeVisitor
 				parentDistal = distalPoints.get(idSegmentParent);
 			}
 			visualGroup.setName(idSegmentParent);
-			visualGroup.addChild(getCylinderFromSegment(s, parentDistal));
+			ANode cyl = getCylinderFromSegment(s, parentDistal);
+			cyl.setParent(visualGroup);
+			visualGroup.addChild(cyl);
 			distalPoints.put(s.getId().toString(), s.getDistal());
 		}
 
@@ -116,7 +119,9 @@ public class PopulateVisualTreeVisitor
 		{
 			for(Morphology m : morphologies)
 			{
-				visualizationTree.addChild(getVisualObjectsFromListOfSegments(m.getSegment(), m.getId()));
+				ANode node = getVisualObjectsFromListOfSegments(m.getSegment(), m.getId());
+				node.setParent(visualizationTree);
+				visualizationTree.addChild(node);
 			}
 		}
 		List<Cell> cells = neuroml.getCell();
@@ -335,7 +340,7 @@ public class PopulateVisualTreeVisitor
 		CompositeNode cellNode = new CompositeNode(cellId);
 
 		CompositeNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(), cellmorphology.getId());
-
+		
 		Map<String, List<AVisualObjectNode>> segmentGeometries = new HashMap<String, List<AVisualObjectNode>>();
 
 		if(!cellmorphology.getSegmentGroup().isEmpty())
@@ -354,15 +359,15 @@ public class PopulateVisualTreeVisitor
 				}
 				if(!sg.getMember().isEmpty())
 				{
-					segmentGeometries.put(sg.getId(), getVisualObjectsForGroup(sg, allSegments));
+					segmentGeometries.put(sg.getId(), getVisualObjectsForGroup(sg, allSegments,visualizationTree));
 				}
 			}
 			for(String sg : segmentGeometries.keySet())
 			{
 				for(AVisualObjectNode vo : segmentGeometries.get(sg))
 				{
-					TextMetadataNode text = new TextMetadataNode();
-					text.setAdditionalProperty("segment_groups", getAllGroupsString(sg, subgroupsMap, ""));
+					TextMetadataNode text = new TextMetadataNode("segment_groups");
+					text.setText(getAllGroupsString(sg, subgroupsMap, ""));
 				}
 			}
 
@@ -376,6 +381,7 @@ public class PopulateVisualTreeVisitor
 
 		}
 
+		cellNode.setParent(visualizationTree);
 		visualizationTree.addChild(cellNode);
 	}
 
@@ -405,7 +411,7 @@ public class PopulateVisualTreeVisitor
 	 * @param allSegments
 	 * @return
 	 */
-	private List<AVisualObjectNode> getVisualObjectsForGroup(SegmentGroup sg, CompositeNode allSegments)
+	private List<AVisualObjectNode> getVisualObjectsForGroup(SegmentGroup sg, CompositeNode allSegments, ANode parent)
 	{
 		List<AVisualObjectNode> geometries = new ArrayList<AVisualObjectNode>();
 		for(Member m : sg.getMember())
@@ -416,6 +422,7 @@ public class PopulateVisualTreeVisitor
 			{
 				if(((AVisualObjectNode) g).getId().equals(m.getSegment().toString()))
 				{
+					g.setParent(parent);
 					geometries.add((AVisualObjectNode) g);
 				}
 			}
