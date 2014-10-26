@@ -53,6 +53,7 @@ import org.geppetto.core.model.runtime.TextMetadataNode;
 import org.geppetto.core.model.runtime.VisualObjectReferenceNode;
 import org.geppetto.core.utilities.VariablePathSerializer;
 import org.geppetto.core.visualisation.model.Point;
+import org.neuroml.model.Base;
 import org.neuroml.model.BaseCell;
 import org.neuroml.model.Cell;
 import org.neuroml.model.Include;
@@ -224,6 +225,21 @@ public class PopulateVisualTreeVisitor
 	}
 
 	/**
+	 * @param componentId
+	 * @param model
+	 * @return
+	 */
+	private BaseCell getNeuroMLComponent(String componentId, ModelWrapper model)
+	{
+		Map<String, Base> discoveredComponents = (Map<String, Base>) model.getModel("discoveredComponents");
+		if(discoveredComponents.containsKey(componentId))
+		{
+			return (BaseCell)discoveredComponents.get(componentId);
+		}
+		return null;
+	}
+	
+	/**
 	 * @param id
 	 * @param visualObject
 	 * @param composite
@@ -280,20 +296,8 @@ public class PopulateVisualTreeVisitor
 		return composite;
 	}
 
-	/**
-	 * @param componentId
-	 * @param model
-	 * @return
-	 */
-	private BaseCell getNeuroMLComponent(String componentId, ModelWrapper model)
-	{
-		Map<String, BaseCell> discoveredComponents = (Map<String, BaseCell>) model.getModel("discoveredComponents");
-		if(discoveredComponents.containsKey(componentId))
-		{
-			return discoveredComponents.get(componentId);
-		}
-		return null;
-	}
+
+
 
 	/**
 	 * @param somaGroup
