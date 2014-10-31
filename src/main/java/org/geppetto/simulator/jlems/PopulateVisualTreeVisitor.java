@@ -36,7 +36,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -96,8 +95,8 @@ public class PopulateVisualTreeVisitor
 	private CompositeNode getVisualObjectsFromListOfSegments(List<Segment> segments, List<SegmentGroup> segmentsGroup, String id)
 	{
 		//Create map with segment ids, keeping track of groups they correspond to 
-		Map<String, List<String>> segmentsMap = new HashMap<String, List<String>>();
-		Map<String, List<String>> segmentsGroupsMap = new HashMap<String, List<String>>();
+		HashMap<String, List<String>> segmentsMap = new HashMap<String, List<String>>();
+		HashMap<String, List<String>> segmentsGroupsMap = new HashMap<String, List<String>>();
 
 		//Get all the segment groups from morphology
 		for(SegmentGroup g : segmentsGroup){
@@ -149,7 +148,7 @@ public class PopulateVisualTreeVisitor
 		}
 		
 		CompositeNode groupNode = new CompositeNode(id);
-		Map<String, Point3DWithDiam> distalPoints = new HashMap<String, Point3DWithDiam>();
+		HashMap<String, Point3DWithDiam> distalPoints = new HashMap<String, Point3DWithDiam>();
 		for(Segment s : segments)
 		{
 			String idSegmentParent = null;
@@ -298,7 +297,7 @@ public class PopulateVisualTreeVisitor
 	 */
 	private BaseCell getNeuroMLComponent(String componentId, ModelWrapper model)
 	{
-		Map<String, Base> discoveredComponents = (Map<String, Base>) model.getModel("discoveredComponents");
+		HashMap<String, Base> discoveredComponents = (HashMap<String, Base>) model.getModel("discoveredComponents");
 		if(discoveredComponents.containsKey(componentId))
 		{
 			return (BaseCell)discoveredComponents.get(componentId);
@@ -316,7 +315,7 @@ public class PopulateVisualTreeVisitor
 	private void addVisualObjectToVizTree(String id, AVisualObjectNode visualObject, ACompositeNode composite, AspectNode aspect, ModelWrapper model)
 	{
 
-		Map<String, EntityNode> entitiesMapping = (Map<String, EntityNode>) model.getModel("entitiesMapping");
+		HashMap<String, EntityNode> entitiesMapping = (HashMap<String, EntityNode>) model.getModel("entitiesMapping");
 		if(entitiesMapping.containsKey(id))
 		{
 			EntityNode e = entitiesMapping.get(id);
@@ -370,7 +369,7 @@ public class PopulateVisualTreeVisitor
 	 * @param somaGroup
 	 * @param segmentGeometries
 	 */
-	private void createVisualModelForMacroGroup(SegmentGroup macroGroup, Map<String, List<AVisualObjectNode>> segmentGeometries, List<AVisualObjectNode> allSegments)
+	private void createVisualModelForMacroGroup(SegmentGroup macroGroup, HashMap<String, List<AVisualObjectNode>> segmentGeometries, List<AVisualObjectNode> allSegments)
 	{
 		// TODO: This method was part of previous visualizer but wasn't used, leaving here in case is needed
 
@@ -410,7 +409,7 @@ public class PopulateVisualTreeVisitor
 	{
 		Morphology cellmorphology = cell.getMorphology();
 
-		Map<String, VisualGroupNode> groupsMap = new HashMap<String,VisualGroupNode>();
+		HashMap<String, VisualGroupNode> groupsMap = new HashMap<String,VisualGroupNode>();
 		
 		for(ChannelDensity density : cell.getBiophysicalProperties().getMembraneProperties().getChannelDensity()){
 			if(!groupsMap.containsKey(density.getIonChannel())){
@@ -468,11 +467,11 @@ public class PopulateVisualTreeVisitor
 		CompositeNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(),
 										cellmorphology.getSegmentGroup(), cellmorphology.getId());
 				
-		Map<String, List<AVisualObjectNode>> segmentGeometries = new HashMap<String, List<AVisualObjectNode>>();
+		HashMap<String, List<AVisualObjectNode>> segmentGeometries = new HashMap<String, List<AVisualObjectNode>>();
 
 		if(!cellmorphology.getSegmentGroup().isEmpty())
 		{
-			Map<String, List<String>> subgroupsMap = new HashMap<String, List<String>>();
+			HashMap<String, List<String>> subgroupsMap = new HashMap<String, List<String>>();
 			for(SegmentGroup sg : cellmorphology.getSegmentGroup())
 			{
 				for(Include include : sg.getInclude())
@@ -521,7 +520,7 @@ public class PopulateVisualTreeVisitor
 	 * @param allGroupsStringp
 	 * @return a semicolon separated string containing all the subgroups that contain a given subgroup
 	 */
-	private String getAllGroupsString(String targetSg, Map<String, List<String>> subgroupsMap, String allGroupsStringp)
+	private String getAllGroupsString(String targetSg, HashMap<String, List<String>> subgroupsMap, String allGroupsStringp)
 	{
 		if(subgroupsMap.containsKey(targetSg))
 		{
