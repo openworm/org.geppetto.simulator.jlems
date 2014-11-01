@@ -415,14 +415,15 @@ public class PopulateVisualTreeVisitor
 		for(ChannelDensity density : cell.getBiophysicalProperties().getMembraneProperties().getChannelDensity()){
 			if(!groupsMap.containsKey(density.getIonChannel())){
 				VisualGroupNode vis = new VisualGroupNode(density.getIonChannel());
-				vis.setName(density.getSegmentGroup());
+				vis.setName(density.getIonChannel());
 				vis.setType(type);
 				vis.setHighSpectrumColor(highSpectrum);
 				vis.setHighSpectrumColor(lowSpectrum);
 				vis.setParent(visualizationTree);
 
 				VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
-
+				element.setName(density.getSegmentGroup());
+				
 				String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
 				Pattern pattern = Pattern.compile(regExp);
 				Matcher matcher = pattern.matcher(density.getCondDensity());
@@ -434,7 +435,7 @@ public class PopulateVisualTreeVisitor
 				}
 
 				element.setParent(vis);
-				element.setDefaultColor("0XFF3300");
+				element.setDefaultColor("0XFF0000");
 				vis.getVisualGroupElements().add(element);
 
 				visualizationTree.addChild(vis);
@@ -444,6 +445,8 @@ public class PopulateVisualTreeVisitor
 				VisualGroupNode vis = groupsMap.get(density.getIonChannel());
 				
 				VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
+				element.setName(density.getSegmentGroup());
+				
 				String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
 				Pattern pattern = Pattern.compile(regExp);
 				Matcher matcher = pattern.matcher(density.getCondDensity());
@@ -455,7 +458,7 @@ public class PopulateVisualTreeVisitor
 				}
 
 				element.setParent(vis);
-				element.setDefaultColor("0XFF1919");
+				element.setDefaultColor("0XFFFF00");
 				vis.getVisualGroupElements().add(element);
 
 				visualizationTree.addChild(vis);
