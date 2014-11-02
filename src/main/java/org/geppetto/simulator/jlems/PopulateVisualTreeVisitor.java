@@ -85,6 +85,7 @@ public class PopulateVisualTreeVisitor
 	private String type = "static";
 	private String highSpectrum = "0XFF0000";
 	private String lowSpectrum = "0XFFFF00";
+	private String defaultColor = "0XFF3300";
 
 	/**
 	 * @param allSegments
@@ -418,48 +419,53 @@ public class PopulateVisualTreeVisitor
 				vis.setName(density.getIonChannel());
 				vis.setType(type);
 				vis.setHighSpectrumColor(highSpectrum);
-				vis.setHighSpectrumColor(lowSpectrum);
+				vis.setLowSpectrumColor(lowSpectrum);
 				vis.setParent(visualizationTree);
 
-				VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
-				element.setName(density.getSegmentGroup());
-				
-				String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
-				Pattern pattern = Pattern.compile(regExp);
-				Matcher matcher = pattern.matcher(density.getCondDensity());
-				if(matcher.find()){
-					PhysicalQuantity physicalQuantity = new PhysicalQuantity();
-					physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
-					physicalQuantity.setUnit(matcher.group(2));
-					element.setParameter(physicalQuantity);
+				if(!density.getId().equals("Leak_all") || !density.getId().equals("Cat_all")){
+					VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
+					element.setName(density.getSegmentGroup());
+
+					String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
+					Pattern pattern = Pattern.compile(regExp);
+					Matcher matcher = pattern.matcher(density.getCondDensity());
+					if(matcher.find()){
+						PhysicalQuantity physicalQuantity = new PhysicalQuantity();
+						physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
+						physicalQuantity.setUnit(matcher.group(2));
+						element.setParameter(physicalQuantity);
+					}
+
+					element.setParent(vis);
+					element.setDefaultColor(defaultColor);
+					vis.getVisualGroupElements().add(element);
 				}
-
-				element.setParent(vis);
-				element.setDefaultColor("0XFF0000");
-				vis.getVisualGroupElements().add(element);
-
+				
 				visualizationTree.addChild(vis);
 				groupsMap.put(density.getIonChannel(), vis);
 			}
 			else{
 				VisualGroupNode vis = groupsMap.get(density.getIonChannel());
 				
-				VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
-				element.setName(density.getSegmentGroup());
-				
-				String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
-				Pattern pattern = Pattern.compile(regExp);
-				Matcher matcher = pattern.matcher(density.getCondDensity());
-				if(matcher.find()){
-					PhysicalQuantity physicalQuantity = new PhysicalQuantity();
-					physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
-					physicalQuantity.setUnit(matcher.group(2));
-					element.setParameter(physicalQuantity);
-				}
+				if(!density.getId().equals("Leak_all") || !density.getId().equals("Cat_all")){
+					VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
+					element.setName(density.getSegmentGroup());
 
-				element.setParent(vis);
-				element.setDefaultColor("0XFFFF00");
-				vis.getVisualGroupElements().add(element);
+					String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
+					Pattern pattern = Pattern.compile(regExp);
+					Matcher matcher = pattern.matcher(density.getCondDensity());
+					if(matcher.find()){
+						PhysicalQuantity physicalQuantity = new PhysicalQuantity();
+						physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
+						physicalQuantity.setUnit(matcher.group(2));
+						element.setParameter(physicalQuantity);
+					}
+
+					element.setParent(vis);
+					element.setDefaultColor(defaultColor);
+					vis.getVisualGroupElements().add(element);
+				}
+				
 
 				visualizationTree.addChild(vis);
 				groupsMap.put(density.getIonChannel(), vis);
