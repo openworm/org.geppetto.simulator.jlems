@@ -37,8 +37,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.geppetto.core.model.ModelWrapper;
+import org.geppetto.core.model.quantities.PhysicalQuantity;
 import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AVisualObjectNode;
@@ -49,12 +52,15 @@ import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.CylinderNode;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.SphereNode;
-import org.geppetto.core.model.runtime.TextMetadataNode;
+import org.geppetto.core.model.runtime.VisualGroupElementNode;
+import org.geppetto.core.model.runtime.VisualGroupNode;
+import org.geppetto.core.model.values.FloatValue;
 import org.geppetto.core.utilities.VariablePathSerializer;
 import org.geppetto.core.visualisation.model.Point;
 import org.neuroml.model.Base;
 import org.neuroml.model.BaseCell;
 import org.neuroml.model.Cell;
+import org.neuroml.model.ChannelDensity;
 import org.neuroml.model.Include;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
@@ -76,17 +82,76 @@ import org.neuroml.model.SegmentGroup;
  */
 public class PopulateVisualTreeVisitor
 {
+	private String type = "static";
+	private String highSpectrum = "0XFF0000";
+	private String lowSpectrum = "0XFFFF00";
+	private String defaultColor = "0XFF3300";
+
 	/**
 	 * @param allSegments
 	 * @param list
+	 * @param list2 
 	 * @param id
 	 * @return
 	 */
-	private CompositeNode getVisualObjectsFromListOfSegments(List<Segment> list, String id)
+	private CompositeNode getVisualObjectsFromListOfSegments(List<Segment> segments, List<SegmentGroup> segmentsGroup, String id)
 	{
-		CompositeNode visualGroup = new CompositeNode(id);
+		//Create map with segment ids, keeping track of groups they correspond to 
+		Map<String, List<String>> segmentsMap = new HashMap<String, List<String>>();
+		Map<String, List<String>> segmentsGroupsMap = new HashMap<String, List<String>>();
+
+		//Get all the segment groups from morphology
+		for(SegmentGroup g : segmentsGroup){
+			
+			//segment found
+			String segmentGroupID = g.getId();
+			
+			//segment not in map, add with new list for groups
+			if(!segmentsGroupsMap.containsKey(segmentGroupID)){
+				List<String> includeGroups = new ArrayList<String>();
+				segmentsGroupsMap.put(segmentGroupID,includeGroups);
+			}
+			
+			//traverse through group segments finding segments inside
+			for(Member i : g.getMember()){
+				//segment found
+				String segmentID = i.getSegment().toString();
+				//segment not in map, add with new list for groups
+				if(!segmentsMap.containsKey(segmentID)){
+					List<String> groups = new ArrayList<String>();
+					groups.add(g.getId());
+					segmentsMap.put(segmentID,groups);
+				}
+				//segment in mpa, get list and put with updated one for groups
+				else{
+					List<String> groups = segmentsMap.get(segmentID);
+				    groups.add(g.getId());
+					segmentsMap.put(segmentID,groups);
+				}
+				
+				List<String> groups = segmentsGroupsMap.get(segmentGroupID);
+			    groups.add(segmentID);
+				segmentsGroupsMap.put(segmentGroupID,groups);
+			}
+			//traverse through group segments finding segments inside
+			for(Include i : g.getInclude()){
+				//segment found
+				String sg = i.getSegmentGroup();
+				//segment not in map, add with new list for groups
+				if(segmentsGroupsMap.containsKey(sg)){
+					List<String> segmentsMembers = segmentsGroupsMap.get(sg);
+					for(String key : segmentsMembers){
+						List<String> groups = segmentsMap.get(key);
+					    groups.add(segmentGroupID);
+						segmentsMap.put(key,groups);
+					}
+				}
+			}
+		}
+		
+		CompositeNode groupNode = new CompositeNode(id);
 		Map<String, Point3DWithDiam> distalPoints = new HashMap<String, Point3DWithDiam>();
-		for(Segment s : list)
+		for(Segment s : segments)
 		{
 			String idSegmentParent = null;
 			Point3DWithDiam parentDistal = null;
@@ -98,12 +163,19 @@ public class PopulateVisualTreeVisitor
 			{
 				parentDistal = distalPoints.get(idSegmentParent);
 			}
-			visualGroup.setName(idSegmentParent);
-			visualGroup.addChild(getCylinderFromSegment(s, parentDistal));
-			distalPoints.put(s.getId().toString(), s.getDistal());
+			groupNode.setName(idSegmentParent);
+			AVisualObjectNode cyl = getCylinderFromSegment(s, parentDistal);
+			
+			if(segmentsMap.containsKey(cyl.getId())){
+				//get groups list for segment and put it in visual objects
+				cyl.setGroupElementsMap(segmentsMap.get(cyl.getId()));
+			}
+			
+			groupNode.addChild(cyl);
+			distalPoints.put(s.getId().toString(), s.getDistal());			
 		}
 
-		return visualGroup;
+		return groupNode;
 	}
 
 	/**
@@ -117,7 +189,9 @@ public class PopulateVisualTreeVisitor
 		{
 			for(Morphology m : morphologies)
 			{
-				visualizationTree.addChild(getVisualObjectsFromListOfSegments(m.getSegment(), m.getId()));
+				ANode node = getVisualObjectsFromListOfSegments(m.getSegment(),m.getSegmentGroup(), m.getId());
+				node.setParent(visualizationTree);
+				visualizationTree.addChild(node);
 			}
 		}
 		List<Cell> cells = neuroml.getCell();
@@ -125,8 +199,7 @@ public class PopulateVisualTreeVisitor
 		{
 			for(Cell c : cells)
 			{
-				Morphology cellmorphology = c.getMorphology();
-				createNodesFromMorphologyBySegmentGroup(visualizationTree, cellmorphology, c.getId());
+				createNodesFromMorphologyBySegmentGroup(visualizationTree, c, c.getId());				
 			}
 		}
 	}
@@ -334,12 +407,76 @@ public class PopulateVisualTreeVisitor
 	 * @param list
 	 * @return
 	 */
-	private void createNodesFromMorphologyBySegmentGroup(AspectSubTreeNode visualizationTree, Morphology cellmorphology, String cellId)
+	private void createNodesFromMorphologyBySegmentGroup(AspectSubTreeNode visualizationTree, Cell cell, String cellId)
 	{
+		Morphology cellmorphology = cell.getMorphology();
+
+		Map<String, VisualGroupNode> groupsMap = new HashMap<String,VisualGroupNode>();
+		
+		for(ChannelDensity density : cell.getBiophysicalProperties().getMembraneProperties().getChannelDensity()){
+			if(!groupsMap.containsKey(density.getIonChannel())){
+				VisualGroupNode vis = new VisualGroupNode(density.getIonChannel());
+				vis.setName(density.getIonChannel());
+				vis.setType(type);
+				vis.setHighSpectrumColor(highSpectrum);
+				vis.setLowSpectrumColor(lowSpectrum);
+				vis.setParent(visualizationTree);
+
+				if(!density.getId().equals("Leak_all") || !density.getId().equals("Cat_all")){
+					VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
+					element.setName(density.getSegmentGroup());
+
+					String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
+					Pattern pattern = Pattern.compile(regExp);
+					Matcher matcher = pattern.matcher(density.getCondDensity());
+					if(matcher.find()){
+						PhysicalQuantity physicalQuantity = new PhysicalQuantity();
+						physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
+						physicalQuantity.setUnit(matcher.group(2));
+						element.setParameter(physicalQuantity);
+					}
+
+					element.setParent(vis);
+					element.setDefaultColor(defaultColor);
+					vis.getVisualGroupElements().add(element);
+				}
+				
+				visualizationTree.addChild(vis);
+				groupsMap.put(density.getIonChannel(), vis);
+			}
+			else{
+				VisualGroupNode vis = groupsMap.get(density.getIonChannel());
+				
+				if(!density.getId().equals("Leak_all") || !density.getId().equals("Cat_all")){
+					VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
+					element.setName(density.getSegmentGroup());
+
+					String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
+					Pattern pattern = Pattern.compile(regExp);
+					Matcher matcher = pattern.matcher(density.getCondDensity());
+					if(matcher.find()){
+						PhysicalQuantity physicalQuantity = new PhysicalQuantity();
+						physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
+						physicalQuantity.setUnit(matcher.group(2));
+						element.setParameter(physicalQuantity);
+					}
+
+					element.setParent(vis);
+					element.setDefaultColor(defaultColor);
+					vis.getVisualGroupElements().add(element);
+				}
+				
+
+				visualizationTree.addChild(vis);
+				groupsMap.put(density.getIonChannel(), vis);
+			}
+		}
+		
 		CompositeNode cellNode = new CompositeNode(cellId);
-
-		CompositeNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(), cellmorphology.getId());
-
+		
+		CompositeNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(),
+										cellmorphology.getSegmentGroup(), cellmorphology.getId());
+				
 		Map<String, List<AVisualObjectNode>> segmentGeometries = new HashMap<String, List<AVisualObjectNode>>();
 
 		if(!cellmorphology.getSegmentGroup().isEmpty())
@@ -365,8 +502,8 @@ public class PopulateVisualTreeVisitor
 			{
 				for(AVisualObjectNode vo : segmentGeometries.get(sg))
 				{
-					TextMetadataNode text = new TextMetadataNode("segment_groups");
-					text.setAdditionalProperties("segment_groups", getAllGroupsString(sg, subgroupsMap, ""));
+//					TextMetadataNode text = new TextMetadataNode("segment_groups");
+//					text.setValue(getAllGroupsString(sg, subgroupsMap, ""));
 				}
 			}
 
@@ -375,11 +512,15 @@ public class PopulateVisualTreeVisitor
 			{
 				List<AVisualObjectNode> segments = segmentGeometries.get(sgId);
 
+				for(AVisualObjectNode s : segments){
+					s.setParent(cellNode);
+				}
 				cellNode.getChildren().addAll(segments);
 			}
 
 		}
 
+		cellNode.setParent(visualizationTree);
 		visualizationTree.addChild(cellNode);
 	}
 
@@ -440,11 +581,11 @@ public class PopulateVisualTreeVisitor
 	/**
 	 * @param s
 	 * @param parentDistal
+	 * @param visualGroupNode 
 	 * @return
 	 */
-	private AVisualObjectNode getCylinderFromSegment(Segment s, Point3DWithDiam parentDistal)
+	private AVisualObjectNode getCylinderFromSegment(Segment s,Point3DWithDiam parentDistal)
 	{
-
 		Point3DWithDiam proximal = s.getProximal() == null ? parentDistal : s.getProximal();
 		Point3DWithDiam distal = s.getDistal();
 
@@ -475,7 +616,6 @@ public class PopulateVisualTreeVisitor
 			}
 			return cyl;
 		}
-
 	}
 
 	/**
