@@ -96,7 +96,7 @@ public class PopulateVisualTreeVisitor
 	/**
 	 * @param allSegments
 	 * @param list
-	 * @param list2 
+	 * @param list2
 	 * @param id
 	 * @return
 	 */
@@ -118,20 +118,23 @@ public class PopulateVisualTreeVisitor
 			}
 			groupNode.setName(idSegmentParent);
 			AVisualObjectNode cyl = getCylinderFromSegment(s, parentDistal);
-			
-			if(segmentsMap.containsKey(cyl.getId())){
-				//get groups list for segment and put it in visual objects
+
+			if(segmentsMap.containsKey(cyl.getId()))
+			{
+				// get groups list for segment and put it in visual objects
 				cyl.setGroupElementsMap(segmentsMap.get(cyl.getId()));
 			}
-			
+
 			groupNode.addChild(cyl);
-			distalPoints.put(s.getId().toString(), s.getDistal());			
+			distalPoints.put(s.getId().toString(), s.getDistal());
 		}
 
 		return groupNode;
 	}
 
 	/**
+	 * Creates Node objects by reading neuroml document. 
+	 * 
 	 * @param neuroml
 	 * @return
 	 */
@@ -161,8 +164,13 @@ public class PopulateVisualTreeVisitor
 				Map<String, List<String>> segmentsMap = this.createCellPartsVisualGroups(c.getMorphology().getSegmentGroup(), visualizationTree);
 				//create density groups for each cell, if it has some
 				CompositeNode densities = this.createChannelDensities(c);
+				//create nodes for visual objects, segments of cell
 				CompositeNode nodes = createNodesFromMorphologyBySegmentGroup(segmentsMap, c);
-				visualizationTree.addChild(densities);
+				if(densities !=null){
+					//add density groups to visualization tree
+					visualizationTree.addChild(densities);
+				}
+				//add visual nodes to visualization tree
 				visualizationTree.addChild(nodes);
 			}
 		}
@@ -274,11 +282,11 @@ public class PopulateVisualTreeVisitor
 		Map<String, Base> discoveredComponents = (Map<String, Base>) model.getModel("discoveredComponents");
 		if(discoveredComponents.containsKey(componentId))
 		{
-			return (BaseCell)discoveredComponents.get(componentId);
+			return (BaseCell) discoveredComponents.get(componentId);
 		}
 		return null;
 	}
-	
+
 	/**
 	 * @param id
 	 * @param visualObject
@@ -336,9 +344,6 @@ public class PopulateVisualTreeVisitor
 		return composite;
 	}
 
-
-
-
 	/**
 	 * @param somaGroup
 	 * @param segmentGeometries
@@ -386,8 +391,8 @@ public class PopulateVisualTreeVisitor
 
 		Morphology cellmorphology = cell.getMorphology();		
 		CompositeNode allSegments = getVisualObjectsFromListOfSegments(cellmorphology.getSegment(),
-										segmentsMap, cellmorphology.getId());
-				
+										segmentsMap, cellmorphology.getId());				
+
 		Map<String, List<AVisualObjectNode>> segmentGeometries = new HashMap<String, List<AVisualObjectNode>>();
 
 		if(!cellmorphology.getSegmentGroup().isEmpty())
@@ -413,8 +418,8 @@ public class PopulateVisualTreeVisitor
 			{
 				for(AVisualObjectNode vo : segmentGeometries.get(sg))
 				{
-//					TextMetadataNode text = new TextMetadataNode("segment_groups");
-//					text.setValue(getAllGroupsString(sg, subgroupsMap, ""));
+					// TextMetadataNode text = new TextMetadataNode("segment_groups");
+					// text.setValue(getAllGroupsString(sg, subgroupsMap, ""));
 				}
 			}
 
@@ -444,69 +449,84 @@ public class PopulateVisualTreeVisitor
 		
 		Map<String, VisualGroupNode> groupsMap = new HashMap<String,VisualGroupNode>();
 
-		CompositeNode densities = new CompositeNode("ChannelDensities");
+		CompositeNode densities = null;
 		
-		for(ChannelDensity density : cell.getBiophysicalProperties().getMembraneProperties().getChannelDensity()){
-			if(!groupsMap.containsKey(density.getIonChannel())){
-				VisualGroupNode vis = new VisualGroupNode(density.getIonChannel());
-				vis.setName(density.getIonChannel());
-				vis.setType(type);
-				vis.setHighSpectrumColor(highSpectrum);
-				vis.setLowSpectrumColor(lowSpectrum);
-				vis.setParent(densities);
-				if(!density.getId().equals("Leak_all") && !density.getId().equals("CaT_all")){
-					VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
-					element.setName(density.getSegmentGroup());
+		if(cell.getBiophysicalProperties() != null && cell.getBiophysicalProperties().getMembraneProperties() != null
+				&& cell.getBiophysicalProperties().getMembraneProperties().getChannelDensity() != null)
+		{
+			densities = new CompositeNode("ChannelDensities");
+			
+			for(ChannelDensity density : cell.getBiophysicalProperties().getMembraneProperties().getChannelDensity()){
+				if(!groupsMap.containsKey(density.getIonChannel())){
+					VisualGroupNode vis = new VisualGroupNode(density.getIonChannel());
+					vis.setName(density.getIonChannel());
+					vis.setType(type);
+					vis.setHighSpectrumColor(highSpectrum);
+					vis.setLowSpectrumColor(lowSpectrum);
+					vis.setParent(densities);
+					if(!density.getId().equals("Leak_all") && !density.getId().equals("CaT_all")){
+						VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
+						element.setName(density.getSegmentGroup());
 
-					String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
-					Pattern pattern = Pattern.compile(regExp);
-					Matcher matcher = pattern.matcher(density.getCondDensity());
-					if(matcher.find()){
-						PhysicalQuantity physicalQuantity = new PhysicalQuantity();
-						physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
-						physicalQuantity.setUnit(matcher.group(2));
-						element.setParameter(physicalQuantity);
+						String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
+						Pattern pattern = Pattern.compile(regExp);
+						Matcher matcher = pattern.matcher(density.getCondDensity());
+						if(matcher.find()){
+							PhysicalQuantity physicalQuantity = new PhysicalQuantity();
+							physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
+							physicalQuantity.setUnit(matcher.group(2));
+							element.setParameter(physicalQuantity);
+						}
+
+						element.setParent(vis);
+						element.setDefaultColor(defaultColor);
+						vis.getVisualGroupElements().add(element);
 					}
 
-					element.setParent(vis);
-					element.setDefaultColor(defaultColor);
-					vis.getVisualGroupElements().add(element);
+					densities.addChild(vis);
+					groupsMap.put(density.getIonChannel(), vis);
 				}
-				
-				densities.addChild(vis);
-				groupsMap.put(density.getIonChannel(), vis);
-			}
-			else{
-				VisualGroupNode vis = groupsMap.get(density.getIonChannel());
-				
-				if(!density.getId().equals("Leak_all") && !density.getId().equals("CaT_all")){
-					VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
-					element.setName(density.getSegmentGroup());
+				else{
+					VisualGroupNode vis = groupsMap.get(density.getIonChannel());
 
-					String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
-					Pattern pattern = Pattern.compile(regExp);
-					Matcher matcher = pattern.matcher(density.getCondDensity());
-					if(matcher.find()){
-						PhysicalQuantity physicalQuantity = new PhysicalQuantity();
-						physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
-						physicalQuantity.setUnit(matcher.group(2));
-						element.setParameter(physicalQuantity);
+					if(!density.getId().equals("Leak_all") && !density.getId().equals("CaT_all")){
+						VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
+						element.setName(density.getSegmentGroup());
+
+						String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
+						Pattern pattern = Pattern.compile(regExp);
+						Matcher matcher = pattern.matcher(density.getCondDensity());
+						if(matcher.find()){
+							PhysicalQuantity physicalQuantity = new PhysicalQuantity();
+							physicalQuantity.setValue(new FloatValue(Float.parseFloat(matcher.group(1))));
+							physicalQuantity.setUnit(matcher.group(2));
+							element.setParameter(physicalQuantity);
+						}
+
+						element.setParent(vis);
+						element.setDefaultColor(defaultColor);
+						vis.getVisualGroupElements().add(element);
 					}
 
-					element.setParent(vis);
-					element.setDefaultColor(defaultColor);
-					vis.getVisualGroupElements().add(element);
-				}
-				
 
-				densities.addChild(vis);
-				groupsMap.put(density.getIonChannel(), vis);
+					densities.addChild(vis);
+					groupsMap.put(density.getIonChannel(), vis);
+				}
 			}
 		}
 		
 		return densities;
 	}
 	
+	/**
+	 * Gets all segments group from cell. Creates a map with segments as key of map, and 
+	 * list of groups it belongs as value. Creates visual groups for cell regions while looping
+	 * through segment groups. 
+	 * 
+	 * @param segmentsGroup
+	 * @param visualizationTree
+	 * @return
+	 */
 	private Map<String, List<String>> createCellPartsVisualGroups(List<SegmentGroup> segmentsGroup, AspectSubTreeNode visualizationTree){
 
 		VisualGroupNode cellParts = new VisualGroupNode("CellRegions");
@@ -523,6 +543,7 @@ public class PopulateVisualTreeVisitor
 
 			VisualGroupElementNode vis = null;
 
+			//create visual groups for cell regions
 			if(segmentGroupID.equals(SOMA )){
 				vis = new VisualGroupElementNode(segmentGroupID);
 				vis.setName(segmentGroupID);
@@ -645,10 +666,10 @@ public class PopulateVisualTreeVisitor
 	/**
 	 * @param s
 	 * @param parentDistal
-	 * @param visualGroupNode 
+	 * @param visualGroupNode
 	 * @return
 	 */
-	private AVisualObjectNode getCylinderFromSegment(Segment s,Point3DWithDiam parentDistal)
+	private AVisualObjectNode getCylinderFromSegment(Segment s, Point3DWithDiam parentDistal)
 	{
 		Point3DWithDiam proximal = s.getProximal() == null ? parentDistal : s.getProximal();
 		Point3DWithDiam distal = s.getDistal();
