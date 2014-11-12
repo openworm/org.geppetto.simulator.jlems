@@ -253,8 +253,8 @@ public class PopulateVisualTreeVisitor
 					ANode visualObject = getVisualObjectForCell(cell, p.getId(),visualizationTree, location);
 					//add visual object to appropriate sub entity  
 					addVisualObjectToVizTree(VariablePathSerializer.getArrayName(p.getId(), i), visualObject, parent, aspect, model);
+					i++;
 				}
-				i++;
 			}
 			else
 			{
