@@ -203,7 +203,6 @@ public class JLEMSSimulatorService extends ASimulator
 				{
 					URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
 					_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);
-					_populateVisualTree.createNodesFromNetwork(visualizationTree, neuroml, url);
 					visualizationTree.setModified(true);
 					aspectNode.setModified(true);
 					((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
