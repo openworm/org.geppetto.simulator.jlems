@@ -464,7 +464,7 @@ public class PopulateVisualTreeVisitor
 					vis.setHighSpectrumColor(highSpectrum);
 					vis.setLowSpectrumColor(lowSpectrum);
 					vis.setParent(densities);
-					if(!density.getId().equals("Leak_all") && !density.getId().equals("CaT_all")){
+					if(!density.getId().equals("Leak_all")){
 						VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
 						element.setName(density.getSegmentGroup());
 
@@ -489,7 +489,7 @@ public class PopulateVisualTreeVisitor
 				else{
 					VisualGroupNode vis = groupsMap.get(density.getIonChannel());
 
-					if(!density.getId().equals("Leak_all") && !density.getId().equals("CaT_all")){
+					if(!density.getId().equals("Leak_all")){
 						VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
 						element.setName(density.getSegmentGroup());
 
