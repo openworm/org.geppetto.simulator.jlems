@@ -46,11 +46,11 @@ import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
-import org.lemsml.jlems.core.api.LEMSDocumentReader;
-import org.lemsml.jlems.core.api.LEMSRunConfiguration;
-import org.lemsml.jlems.core.api.interfaces.ILEMSDocument;
-import org.lemsml.jlems.core.api.interfaces.ILEMSDocumentReader;
-import org.lemsml.jlems.core.api.interfaces.ILEMSRunConfiguration;
+import org.lemsml.jlems.api.LEMSDocumentReader;
+import org.lemsml.jlems.api.LEMSRunConfiguration;
+import org.lemsml.jlems.api.interfaces.ILEMSDocument;
+import org.lemsml.jlems.api.interfaces.ILEMSDocumentReader;
+import org.lemsml.jlems.api.interfaces.ILEMSRunConfiguration;
 import org.lemsml.jlems.core.sim.ContentError;
 
 import ucar.ma2.ArrayInt;

@@ -42,10 +42,10 @@ import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.VariableNode;
 import org.geppetto.core.model.state.visitors.DefaultStateVisitor;
 import org.geppetto.core.model.values.DoubleValue;
-import org.lemsml.jlems.core.api.ALEMSValue;
-import org.lemsml.jlems.core.api.LEMSDoubleValue;
-import org.lemsml.jlems.core.api.StateIdentifier;
-import org.lemsml.jlems.core.api.interfaces.ILEMSResultsContainer;
+import org.lemsml.jlems.api.ALEMSValue;
+import org.lemsml.jlems.api.LEMSDoubleValue;
+import org.lemsml.jlems.api.StateIdentifier;
+import org.lemsml.jlems.api.interfaces.ILEMSResultsContainer;
 
 /**
  * @author matteocantarelli
