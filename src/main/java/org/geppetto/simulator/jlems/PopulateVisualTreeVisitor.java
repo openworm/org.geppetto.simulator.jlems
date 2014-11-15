@@ -559,6 +559,7 @@ public class PopulateVisualTreeVisitor
 			}
 			
 			if(vis!=null){
+				vis.setParent(cellParts);
 				cellParts.getVisualGroupElements().add(vis);
 			}
 			
