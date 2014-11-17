@@ -106,8 +106,6 @@ public class NeuroMLSimulatorService extends ASimulator {
 				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
 				populateVisualTree.createNodesFromNeuroMLDocument(
 						visualizationTree, neuroml);
-				populateVisualTree.createNodesFromNetwork(visualizationTree,
-						neuroml, url);
 				visualizationTree.setModified(true);
 				aspectNode.setModified(true);
 				((EntityNode) aspectNode.getParentEntity())

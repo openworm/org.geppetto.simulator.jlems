@@ -33,7 +33,6 @@
 package org.geppetto.simulator.jlems.test;
 
 import javax.measure.quantity.Quantity;
-import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import junit.framework.Assert;
@@ -45,10 +44,10 @@ import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.data.DataModelFactory;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.junit.Test;
-import org.lemsml.jlems.core.api.LEMSRunConfiguration;
-import org.lemsml.jlems.core.api.StateIdentifier;
-import org.lemsml.jlems.core.api.StateRecord;
-import org.lemsml.jlems.core.api.interfaces.ILEMSRunConfiguration;
+import org.lemsml.jlems.api.LEMSRunConfiguration;
+import org.lemsml.jlems.api.StateIdentifier;
+import org.lemsml.jlems.api.StateRecord;
+import org.lemsml.jlems.api.interfaces.ILEMSRunConfiguration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
