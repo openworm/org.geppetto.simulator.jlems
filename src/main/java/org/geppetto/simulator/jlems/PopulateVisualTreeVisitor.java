@@ -455,6 +455,7 @@ public class PopulateVisualTreeVisitor
 				&& cell.getBiophysicalProperties().getMembraneProperties().getChannelDensity() != null)
 		{
 			densities = new CompositeNode("ChannelDensities");
+			densities.setName("Channel Densities");
 			
 			for(ChannelDensity density : cell.getBiophysicalProperties().getMembraneProperties().getChannelDensity()){
 				if(!groupsMap.containsKey(density.getIonChannel())){
@@ -465,8 +466,8 @@ public class PopulateVisualTreeVisitor
 					vis.setLowSpectrumColor(lowSpectrum);
 					vis.setParent(densities);
 					if(!density.getId().equals("Leak_all")){
-						VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
-						element.setName(density.getSegmentGroup());
+						VisualGroupElementNode element = new VisualGroupElementNode(density.getSegmentGroup());
+						element.setName(density.getId());
 
 						String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
 						Pattern pattern = Pattern.compile(regExp);
@@ -490,8 +491,8 @@ public class PopulateVisualTreeVisitor
 					VisualGroupNode vis = groupsMap.get(density.getIonChannel());
 
 					if(!density.getId().equals("Leak_all")){
-						VisualGroupElementNode element = new VisualGroupElementNode(density.getId());
-						element.setName(density.getSegmentGroup());
+						VisualGroupElementNode element = new VisualGroupElementNode(density.getSegmentGroup());
+						element.setName(density.getId());
 
 						String regExp = "\\s*([0-9-]*\\.?[0-9]*[eE]?[-+]?[0-9]+)?\\s*(\\w*)";
 						Pattern pattern = Pattern.compile(regExp);
@@ -530,7 +531,8 @@ public class PopulateVisualTreeVisitor
 	private Map<String, List<String>> createCellPartsVisualGroups(List<SegmentGroup> segmentsGroup, AspectSubTreeNode visualizationTree){
 
 		VisualGroupNode cellParts = new VisualGroupNode("CellRegions");
-
+		cellParts.setName("Cell Regions");
+		
 		//Create map with segment ids, keeping track of groups they correspond to 
 		Map<String, List<String>> segmentsMap = new HashMap<String, List<String>>();
 		Map<String, List<String>> segmentsGroupsMap = new HashMap<String, List<String>>();
@@ -546,15 +548,15 @@ public class PopulateVisualTreeVisitor
 			//create visual groups for cell regions
 			if(segmentGroupID.equals(SOMA )){
 				vis = new VisualGroupElementNode(segmentGroupID);
-				vis.setName(segmentGroupID);
+				vis.setName("Soma");
 				vis.setDefaultColor(somaColor);
 			}else if(segmentGroupID.equals(DENDRITES)){
 				vis = new VisualGroupElementNode(segmentGroupID);
-				vis.setName(segmentGroupID);
+				vis.setName("Dendrites");
 				vis.setDefaultColor(dendritesColor);
 			}else if(segmentGroupID.equals(AXONS)){
 				vis = new VisualGroupElementNode(segmentGroupID);
-				vis.setName(segmentGroupID);
+				vis.setName("Axons");
 				vis.setDefaultColor(axonsColor);
 			}
 			
