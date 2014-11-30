@@ -693,12 +693,12 @@ public class PopulateVisualTreeVisitor
 			if(proximal != null)
 			{
 				cyl.setPosition(getPoint(proximal));
-				cyl.setRadiusBottom(proximal.getDiameter() / 2);
 			}
 
 			if(distal != null)
 			{
 				cyl.setRadiusTop(s.getDistal().getDiameter() / 2);
+				cyl.setRadiusBottom(s.getDistal().getDiameter() / 2);
 				cyl.setDistal(getPoint(distal));
 				cyl.setHeight(0d);
 			}
