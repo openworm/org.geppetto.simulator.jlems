@@ -674,7 +674,7 @@ public class PopulateVisualTreeVisitor
 	 */
 	private AVisualObjectNode getCylinderFromSegment(Segment s, Point3DWithDiam parentDistal)
 	{
-		Point3DWithDiam proximal = s.getProximal() == null ? parentDistal : s.getProximal();
+		Point3DWithDiam proximal = (s.getProximal() == null) ? parentDistal : s.getProximal();
 		Point3DWithDiam distal = s.getDistal();
 
 		if(samePoint(proximal, distal)) // ideally an equals but the objects
@@ -695,7 +695,6 @@ public class PopulateVisualTreeVisitor
 				cyl.setPosition(getPoint(proximal));
 				cyl.setRadiusBottom(proximal.getDiameter() / 2);
 			}
-
 			if(distal != null)
 			{
 				cyl.setRadiusTop(s.getDistal().getDiameter() / 2);
