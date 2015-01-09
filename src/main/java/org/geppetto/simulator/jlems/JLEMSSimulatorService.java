@@ -32,7 +32,6 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
@@ -97,6 +96,7 @@ import org.lemsml.jlems.api.interfaces.IStateIdentifier;
 import org.lemsml.jlems.api.interfaces.IStateRecord;
 import org.lemsml.jlems.core.expression.ParseError;
 import org.lemsml.jlems.core.sim.ContentError;
+import org.lemsml.jlems.core.type.Target;
 import org.neuroml.model.NeuroMLDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -118,11 +118,12 @@ public class JLEMSSimulatorService extends ASimulator
 	private SimulatorConfig jlemsSimulatorConfig;
 
 	private static final String NEUROML_ID = "neuroml";
-	private static final String URL_ID = "url";
+	public static final String LEMS_ID = "lems";
 
 	private PopulateVisualTreeVisitor _populateVisualTree = new PopulateVisualTreeVisitor();
 	private Map<String, String> _lemsToGeppetto = new HashMap<String, String>();
 	private Map<String, String> _geppettoToLems = new HashMap<String, String>();
+	private ILEMSDocument _lemsDocument=null;
 
 	/*
 	 * (non-Javadoc)
@@ -138,9 +139,9 @@ public class JLEMSSimulatorService extends ASimulator
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
 			// TODO Refactor simulators to deal with more than one model!
-			ILEMSDocument lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel("lems");
+			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(LEMS_ID);
 
-			builder.addDocument(lemsDocument);
+			builder.addDocument(_lemsDocument);
 
 			ILEMSBuildOptions options = new LEMSBuildOptions();
 			options.addBuildOption(LEMSBuildOptionsEnum.FLATTEN);
@@ -150,8 +151,8 @@ public class JLEMSSimulatorService extends ASimulator
 											// configuration and target from the
 											// file
 
-			_runConfig = LEMSDocumentReader.getLEMSRunConfiguration(lemsDocument);
-			config = new LEMSBuildConfiguration(LEMSDocumentReader.getTarget(lemsDocument));
+			_runConfig = LEMSDocumentReader.getLEMSRunConfiguration(_lemsDocument);
+			config = new LEMSBuildConfiguration(LEMSDocumentReader.getTarget(_lemsDocument));
 			Collection<ILEMSStateInstance> stateInstances = builder.build(config, options); // real build for our specific target
 
 			_simulator = new LEMSSimulator();
@@ -193,19 +194,25 @@ public class JLEMSSimulatorService extends ASimulator
 
 		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
 
-		IModel model = aspectNode.getModel();
 		try
 		{
-			if(((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID) instanceof NeuroMLDocument)
+			Object neuroml = ((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID);
+			if(neuroml != null)
 			{
-				NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
-				if(neuroml != null)
+				if(neuroml instanceof NeuroMLDocument)
 				{
-					URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
-					_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);
-					visualizationTree.setModified(true);
-					aspectNode.setModified(true);
-					((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
+					process((NeuroMLDocument) neuroml,visualizationTree,aspectNode);
+
+				}
+				else if(neuroml instanceof Map)
+				{
+					for(Object item : ((Map<?, ?>) neuroml).values())
+					{
+						if(item instanceof NeuroMLDocument)
+						{
+							process((NeuroMLDocument) item,visualizationTree,aspectNode);
+						}
+					}
 				}
 			}
 		}
@@ -217,6 +224,20 @@ public class JLEMSSimulatorService extends ASimulator
 		notifyStateTreeUpdated();
 
 		return true;
+	}
+
+	/**
+	 * @param neuroml
+	 * @param visualizationTree
+	 * @param aspectNode
+	 */
+	private void process(NeuroMLDocument neuroml, AspectSubTreeNode visualizationTree, AspectNode aspectNode)
+	{
+		_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);
+		visualizationTree.setModified(true);
+		aspectNode.setModified(true);
+		((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
+		
 	}
 
 	/**
@@ -274,7 +295,6 @@ public class JLEMSSimulatorService extends ASimulator
 				for(IStateIdentifier state : results.getStates().keySet())
 				{
 					String statePath = state.getStatePath().replace("/", ".");
-					
 
 					AspectSubTreeNode simulationTree = getSimulationTreeFor(statePath, aspect.getSubTree(AspectTreeType.WATCH_TREE));
 					simulationTree.setModified(true);
@@ -419,7 +439,7 @@ public class JLEMSSimulatorService extends ASimulator
 					{
 						post = post.substring(1);
 					}
-					//We replace the pattern .digits. with [digits] as Geppetto doesn't support nodes that have numbers as names
+					// We replace the pattern .digits. with [digits] as Geppetto doesn't support nodes that have numbers as names
 					post = post.replaceAll("\\.(\\d*)\\.", "\\[$1\\]\\.");
 					_lemsToGeppetto.put(statePath, a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post);
 					_geppettoToLems.put(a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post, statePath);
