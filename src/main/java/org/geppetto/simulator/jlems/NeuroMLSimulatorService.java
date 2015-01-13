@@ -80,6 +80,7 @@ public class NeuroMLSimulatorService extends ASimulator {
 	public void simulate(IRunConfiguration arg0, AspectNode aspect)
 			throws GeppettoExecutionException {
 		advanceTimeStep(0);
+		advanceRecordings(aspect);
 		notifyStateTreeUpdated();
 	}
 
@@ -128,25 +129,22 @@ public class NeuroMLSimulatorService extends ASimulator {
 	}
 
 	public void addWatchVariables(List<String> variableNames) {
-		// TODO Auto-generated method stub
-
+		super.addWatchVariables(variableNames);
 	}
 
 	@Override
 	public void startWatch() {
-		// TODO Auto-generated method stub
-
+		super.startWatch();
 	}
 
 	@Override
 	public void stopWatch() {
-		// TODO Auto-generated method stub
-
+		super.stopWatch();
 	}
 
 	@Override
 	public void clearWatchVariables() {
-		// TODO Auto-generated method stub
+		super.clearWatchVariables();
 	}
 
 	@Override
