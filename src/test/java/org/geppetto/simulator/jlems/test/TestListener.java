@@ -57,4 +57,10 @@ public class TestListener implements ISimulatorCallbackListener
 		return tree;
 	}
 
+	@Override
+	public void endOfSteps() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
