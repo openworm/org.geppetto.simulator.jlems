@@ -58,7 +58,7 @@ public class TestListener implements ISimulatorCallbackListener
 	}
 
 	@Override
-	public void endOfSteps() {
+	public void endOfSteps(String message) {
 		// TODO Auto-generated method stub
 		
 	}
