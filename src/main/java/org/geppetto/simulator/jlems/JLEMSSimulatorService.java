@@ -33,6 +33,7 @@
 package org.geppetto.simulator.jlems;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -96,6 +97,8 @@ import org.lemsml.jlems.api.interfaces.IStateIdentifier;
 import org.lemsml.jlems.api.interfaces.IStateRecord;
 import org.lemsml.jlems.core.expression.ParseError;
 import org.lemsml.jlems.core.sim.ContentError;
+import org.lemsml.jlems.core.type.Component;
+import org.lemsml.jlems.core.type.Lems;
 import org.lemsml.jlems.core.type.Target;
 import org.neuroml.model.NeuroMLDocument;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,6 +127,8 @@ public class JLEMSSimulatorService extends ASimulator
 	private Map<String, String> _lemsToGeppetto = new HashMap<String, String>();
 	private Map<String, String> _geppettoToLems = new HashMap<String, String>();
 	private ILEMSDocument _lemsDocument=null;
+	
+	private List<String> targetCells = new ArrayList<String>();
 
 	/*
 	 * (non-Javadoc)
@@ -141,6 +146,7 @@ public class JLEMSSimulatorService extends ASimulator
 			// TODO Refactor simulators to deal with more than one model!
 			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(LEMS_ID);
 
+			
 			builder.addDocument(_lemsDocument);
 
 			ILEMSBuildOptions options = new LEMSBuildOptions();
@@ -155,6 +161,18 @@ public class JLEMSSimulatorService extends ASimulator
 			config = new LEMSBuildConfiguration(LEMSDocumentReader.getTarget(_lemsDocument));
 			Collection<ILEMSStateInstance> stateInstances = builder.build(config, options); // real build for our specific target
 
+			// Extract morphologies to display
+			Lems lems = (Lems) _lemsDocument;
+			Component component = lems.getComponent(LEMSDocumentReader.getTarget(_lemsDocument));
+			for (Component population: component.getChildrenAL("populations")){
+				targetCells.add(population.getAttributes().getByName("component").getValue());
+//				HashMap<String, Component> childHM = lems.getComponent(componentId).getChildHM();
+//				if (childHM.containsKey("morphology")){
+//					targetMorphologies.add(childHM.get("morphology").getID());
+//				}
+			}
+
+			
 			_simulator = new LEMSSimulator();
 			for(ILEMSStateInstance instance : stateInstances)
 			{
@@ -201,7 +219,7 @@ public class JLEMSSimulatorService extends ASimulator
 			{
 				if(neuroml instanceof NeuroMLDocument)
 				{
-					process((NeuroMLDocument) neuroml,visualizationTree,aspectNode);
+					process((NeuroMLDocument) neuroml,visualizationTree,aspectNode, targetCells);
 
 				}
 				else if(neuroml instanceof Map)
@@ -210,7 +228,7 @@ public class JLEMSSimulatorService extends ASimulator
 					{
 						if(item instanceof NeuroMLDocument)
 						{
-							process((NeuroMLDocument) item,visualizationTree,aspectNode);
+							process((NeuroMLDocument) item,visualizationTree,aspectNode, targetCells);
 						}
 					}
 				}
@@ -230,10 +248,11 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @param neuroml
 	 * @param visualizationTree
 	 * @param aspectNode
+	 * @param targetComponents 
 	 */
-	private void process(NeuroMLDocument neuroml, AspectSubTreeNode visualizationTree, AspectNode aspectNode)
+	private void process(NeuroMLDocument neuroml, AspectSubTreeNode visualizationTree, AspectNode aspectNode, List<String> targetCells)
 	{
-		_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);
+		_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml, targetCells);
 		visualizationTree.setModified(true);
 		aspectNode.setModified(true);
 		((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
