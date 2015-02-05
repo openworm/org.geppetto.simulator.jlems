@@ -33,6 +33,7 @@
 package org.geppetto.simulator.jlems;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -96,6 +97,8 @@ import org.lemsml.jlems.api.interfaces.IStateIdentifier;
 import org.lemsml.jlems.api.interfaces.IStateRecord;
 import org.lemsml.jlems.core.expression.ParseError;
 import org.lemsml.jlems.core.sim.ContentError;
+import org.lemsml.jlems.core.type.Component;
+import org.lemsml.jlems.core.type.Lems;
 import org.lemsml.jlems.core.type.Target;
 import org.neuroml.model.NeuroMLDocument;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,6 +127,9 @@ public class JLEMSSimulatorService extends ASimulator
 	private Map<String, String> _lemsToGeppetto = new HashMap<String, String>();
 	private Map<String, String> _geppettoToLems = new HashMap<String, String>();
 	private ILEMSDocument _lemsDocument=null;
+	
+	private List<String> targetCells = null;
+	private Map<String, List<ANode>> visualizationNodes = null;
 
 	/*
 	 * (non-Javadoc)
@@ -135,12 +141,13 @@ public class JLEMSSimulatorService extends ASimulator
 	{
 		super.initialize(models, listener);
 		setTimeStepUnit("s");
+		visualizationNodes = new HashMap<String, List<ANode>>();
+		
 		try
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
 			// TODO Refactor simulators to deal with more than one model!
 			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(LEMS_ID);
-
 			builder.addDocument(_lemsDocument);
 
 			ILEMSBuildOptions options = new LEMSBuildOptions();
@@ -155,6 +162,19 @@ public class JLEMSSimulatorService extends ASimulator
 			config = new LEMSBuildConfiguration(LEMSDocumentReader.getTarget(_lemsDocument));
 			Collection<ILEMSStateInstance> stateInstances = builder.build(config, options); // real build for our specific target
 
+			// Extract cells to display if target component exists
+			Lems lems = (Lems) _lemsDocument;
+			String targetComponent = LEMSDocumentReader.getTarget(_lemsDocument);
+			if (targetComponent !=null){
+				targetCells = new ArrayList<String>();
+				for (Component population: lems.getComponent(targetComponent).getChildrenAL("populations")){
+					targetCells.add(population.getAttributes().getByName("component").getValue());
+				}
+			}
+			else{
+				targetCells = null;
+			}
+			
 			_simulator = new LEMSSimulator();
 			for(ILEMSStateInstance instance : stateInstances)
 			{
@@ -191,29 +211,23 @@ public class JLEMSSimulatorService extends ASimulator
 	@Override
 	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException, GeppettoExecutionException
 	{
-
 		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
-
 		try
 		{
-			Object neuroml = ((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID);
-			if(neuroml != null)
-			{
-				if(neuroml instanceof NeuroMLDocument)
-				{
-					process((NeuroMLDocument) neuroml,visualizationTree,aspectNode);
-
+			process((NeuroMLDocument) ((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID), visualizationTree, aspectNode);
+			
+			//If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
+			if (targetCells == null){
+				for (List<ANode> visualizationNodesItem : visualizationNodes.values()){
+					visualizationTree.addChildren(visualizationNodesItem);
 				}
-				else if(neuroml instanceof Map)
-				{
-					for(Object item : ((Map<?, ?>) neuroml).values())
-					{
-						if(item instanceof NeuroMLDocument)
-						{
-							process((NeuroMLDocument) item,visualizationTree,aspectNode);
-						}
-					}
-				}
+			}
+			else if (targetCells != null && targetCells.size() > 0){
+				for (Map.Entry<String, List<ANode>> entry : visualizationNodes.entrySet()) {
+					  if ( targetCells.contains(entry.getKey())){
+						  visualizationTree.addChildren(entry.getValue());
+					  }
+				}	  
 			}
 		}
 		catch(Exception e)
@@ -230,10 +244,11 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @param neuroml
 	 * @param visualizationTree
 	 * @param aspectNode
+	 * @param targetComponents 
 	 */
 	private void process(NeuroMLDocument neuroml, AspectSubTreeNode visualizationTree, AspectNode aspectNode)
 	{
-		_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);
+		_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml, targetCells, visualizationNodes);
 		visualizationTree.setModified(true);
 		aspectNode.setModified(true);
 		((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
