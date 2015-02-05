@@ -129,7 +129,7 @@ public class JLEMSSimulatorService extends ASimulator
 	private ILEMSDocument _lemsDocument=null;
 	
 	private List<String> targetCells = null;
-	private Map<String, List<ANode>> visualizationNodes = new HashMap<String, List<ANode>>();
+	private Map<String, List<ANode>> visualizationNodes = null;
 
 	/*
 	 * (non-Javadoc)
@@ -141,6 +141,8 @@ public class JLEMSSimulatorService extends ASimulator
 	{
 		super.initialize(models, listener);
 		setTimeStepUnit("s");
+		visualizationNodes = new HashMap<String, List<ANode>>();
+		
 		try
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
@@ -160,7 +162,7 @@ public class JLEMSSimulatorService extends ASimulator
 			config = new LEMSBuildConfiguration(LEMSDocumentReader.getTarget(_lemsDocument));
 			Collection<ILEMSStateInstance> stateInstances = builder.build(config, options); // real build for our specific target
 
-			// Extract morphologies to display
+			// Extract cells to display if target component exists
 			Lems lems = (Lems) _lemsDocument;
 			String targetComponent = LEMSDocumentReader.getTarget(_lemsDocument);
 			if (targetComponent !=null){
@@ -168,6 +170,9 @@ public class JLEMSSimulatorService extends ASimulator
 				for (Component population: lems.getComponent(targetComponent).getChildrenAL("populations")){
 					targetCells.add(population.getAttributes().getByName("component").getValue());
 				}
+			}
+			else{
+				targetCells = null;
 			}
 			
 			_simulator = new LEMSSimulator();
@@ -206,30 +211,10 @@ public class JLEMSSimulatorService extends ASimulator
 	@Override
 	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException, GeppettoExecutionException
 	{
-
 		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
-
 		try
 		{
-			Object neuroml = ((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID);
-			if(neuroml != null)
-			{
-				if(neuroml instanceof NeuroMLDocument)
-				{
-					process((NeuroMLDocument) neuroml, visualizationTree, aspectNode);
-
-				}
-				else if(neuroml instanceof Map)
-				{
-					for(Object item : ((Map<?, ?>) neuroml).values())
-					{
-						if(item instanceof NeuroMLDocument)
-						{
-							process((NeuroMLDocument) item, visualizationTree, aspectNode);
-						}
-					}
-				}
-			}
+			process((NeuroMLDocument) ((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID), visualizationTree, aspectNode);
 			
 			//If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
 			if (targetCells == null){

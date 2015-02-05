@@ -33,7 +33,6 @@
 package org.geppetto.simulator.jlems;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,12 +52,6 @@ import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
-import org.lemsml.jlems.api.LEMSDocumentReader;
-import org.lemsml.jlems.api.interfaces.ILEMSDocument;
-import org.lemsml.jlems.core.expression.ParseError;
-import org.lemsml.jlems.core.sim.ContentError;
-import org.lemsml.jlems.core.type.Component;
-import org.lemsml.jlems.core.type.Lems;
 import org.neuroml.model.NeuroMLDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,11 +66,10 @@ public class NeuroMLSimulatorService extends ASimulator {
 	@Autowired
 	private SimulatorConfig neuroMLSimulatorConfig;
 	private static final String NEUROML_ID = "neuroml";
-	//public static final String NEUROML_ID_INCLUSIONS = "neuromlInclusions";
 	private static final String URL_ID = "url";
 	public static final String LEMS_ID = "lems";
 	
-	private Map<String, List<ANode>> visualizationNodes = new HashMap<String, List<ANode>>();
+	private Map<String, List<ANode>> visualizationNodes;
 	
 	// helper class for populating the visual tree of aspect node
 	private PopulateVisualTreeVisitor populateVisualTree = new PopulateVisualTreeVisitor();
@@ -86,6 +78,7 @@ public class NeuroMLSimulatorService extends ASimulator {
 	public void initialize(List<IModel> models,	ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException {
 		super.initialize(models, listener);
 		advanceTimeStep(0);
+		visualizationNodes = new HashMap<String, List<ANode>>();
 	}
 
 	@Override
