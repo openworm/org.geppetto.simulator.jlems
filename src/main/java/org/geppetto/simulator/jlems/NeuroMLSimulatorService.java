@@ -36,6 +36,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.GeppettoExecutionException;
@@ -44,6 +45,7 @@ import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelInterpreterException;
 import org.geppetto.core.model.ModelWrapper;
+import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
@@ -75,6 +77,8 @@ public class NeuroMLSimulatorService extends ASimulator {
 	private static final String URL_ID = "url";
 	public static final String LEMS_ID = "lems";
 	
+	private Map<String, List<ANode>> visualizationNodes = new HashMap<String, List<ANode>>();
+	
 	// helper class for populating the visual tree of aspect node
 	private PopulateVisualTreeVisitor populateVisualTree = new PopulateVisualTreeVisitor();
 
@@ -100,11 +104,9 @@ public class NeuroMLSimulatorService extends ASimulator {
 	 * .core.model.runtime.AspectNode)
 	 */
 	@Override
-	public boolean populateVisualTree(AspectNode aspectNode)
-			throws ModelInterpreterException {
+	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException {
 
-		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode
-				.getSubTree(AspectTreeType.VISUALIZATION_TREE);
+		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
 
 		IModel model = aspectNode.getModel();
 
@@ -112,11 +114,14 @@ public class NeuroMLSimulatorService extends ASimulator {
 			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
 			if (neuroml != null) {
 				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
-				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml, null);
+				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml, null, visualizationNodes);
+				//If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
+				for (List<ANode> visualizationNodesItem : visualizationNodes.values()){
+					visualizationTree.addChildren(visualizationNodesItem);
+				}
 				visualizationTree.setModified(true);
 				aspectNode.setModified(true);
-				((EntityNode) aspectNode.getParentEntity())
-						.updateParentEntitiesFlags(true);
+				((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
 			}
 		} catch (Exception e) {
 			throw new ModelInterpreterException(e);
