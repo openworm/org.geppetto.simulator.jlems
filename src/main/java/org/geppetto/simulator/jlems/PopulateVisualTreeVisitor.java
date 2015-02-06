@@ -240,7 +240,7 @@ public class PopulateVisualTreeVisitor
 		}
 		else{
 			SphereNode sphereNode = new SphereNode(id);
-			sphereNode.setRadius(1d);
+			sphereNode.setRadius(1.2d);
 			Point origin = null;
 			if(location == null)
 			{
