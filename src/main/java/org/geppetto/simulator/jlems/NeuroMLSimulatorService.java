@@ -1,7 +1,7 @@
 /*******************************************************************************
  * The MIT License (MIT)
  * 
- * Copyright (c) 2011, 2013 OpenWorm.
+ * Copyright (c) 2011 - 2015 OpenWorm.
  * http://openworm.org
  * 
  * All rights reserved. This program and the accompanying materials
@@ -33,7 +33,9 @@
 package org.geppetto.simulator.jlems;
 
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.GeppettoExecutionException;
@@ -42,6 +44,7 @@ import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelInterpreterException;
 import org.geppetto.core.model.ModelWrapper;
+import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
@@ -64,22 +67,25 @@ public class NeuroMLSimulatorService extends ASimulator {
 	private SimulatorConfig neuroMLSimulatorConfig;
 	private static final String NEUROML_ID = "neuroml";
 	private static final String URL_ID = "url";
-
+	public static final String LEMS_ID = "lems";
+	
+	private Map<String, List<ANode>> visualizationNodes;
+	
 	// helper class for populating the visual tree of aspect node
 	private PopulateVisualTreeVisitor populateVisualTree = new PopulateVisualTreeVisitor();
 
 	@Override
-	public void initialize(List<IModel> models,
-			ISimulatorCallbackListener listener)
-			throws GeppettoInitializationException, GeppettoExecutionException {
+	public void initialize(List<IModel> models,	ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException {
 		super.initialize(models, listener);
 		advanceTimeStep(0);
+		visualizationNodes = new HashMap<String, List<ANode>>();
 	}
 
 	@Override
 	public void simulate(IRunConfiguration arg0, AspectNode aspect)
 			throws GeppettoExecutionException {
 		advanceTimeStep(0);
+		advanceRecordings(aspect);
 		notifyStateTreeUpdated();
 	}
 
@@ -91,25 +97,24 @@ public class NeuroMLSimulatorService extends ASimulator {
 	 * .core.model.runtime.AspectNode)
 	 */
 	@Override
-	public boolean populateVisualTree(AspectNode aspectNode)
-			throws ModelInterpreterException {
+	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException {
 
-		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode
-				.getSubTree(AspectTreeType.VISUALIZATION_TREE);
+		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
 
 		IModel model = aspectNode.getModel();
 
 		try {
-			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model)
-					.getModel(NEUROML_ID);
+			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
 			if (neuroml != null) {
 				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
-				populateVisualTree.createNodesFromNeuroMLDocument(
-						visualizationTree, neuroml);
+				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml, null, visualizationNodes);
+				//If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
+				for (List<ANode> visualizationNodesItem : visualizationNodes.values()){
+					visualizationTree.addChildren(visualizationNodesItem);
+				}
 				visualizationTree.setModified(true);
 				aspectNode.setModified(true);
-				((EntityNode) aspectNode.getParentEntity())
-						.updateParentEntitiesFlags(true);
+				((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
 			}
 		} catch (Exception e) {
 			throw new ModelInterpreterException(e);
@@ -128,25 +133,22 @@ public class NeuroMLSimulatorService extends ASimulator {
 	}
 
 	public void addWatchVariables(List<String> variableNames) {
-		// TODO Auto-generated method stub
-
+		super.addWatchVariables(variableNames);
 	}
 
 	@Override
 	public void startWatch() {
-		// TODO Auto-generated method stub
-
+		super.startWatch();
 	}
 
 	@Override
 	public void stopWatch() {
-		// TODO Auto-generated method stub
-
+		super.stopWatch();
 	}
 
 	@Override
 	public void clearWatchVariables() {
-		// TODO Auto-generated method stub
+		super.clearWatchVariables();
 	}
 
 	@Override

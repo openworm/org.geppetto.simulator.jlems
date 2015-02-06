@@ -1,7 +1,7 @@
 /*******************************************************************************
  * The MIT License (MIT)
  *
- * Copyright (c) 2011, 2013 OpenWorm.
+ * Copyright (c) 2011 - 2015 OpenWorm.
  * http://openworm.org
  *
  * All rights reserved. This program and the accompanying materials
@@ -32,8 +32,8 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
-import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -97,6 +97,8 @@ import org.lemsml.jlems.api.interfaces.IStateIdentifier;
 import org.lemsml.jlems.api.interfaces.IStateRecord;
 import org.lemsml.jlems.core.expression.ParseError;
 import org.lemsml.jlems.core.sim.ContentError;
+import org.lemsml.jlems.core.type.Component;
+import org.lemsml.jlems.core.type.Lems;
 import org.neuroml.model.NeuroMLDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -118,11 +120,15 @@ public class JLEMSSimulatorService extends ASimulator
 	private SimulatorConfig jlemsSimulatorConfig;
 
 	private static final String NEUROML_ID = "neuroml";
-	private static final String URL_ID = "url";
+	public static final String LEMS_ID = "lems";
 
 	private PopulateVisualTreeVisitor _populateVisualTree = new PopulateVisualTreeVisitor();
 	private Map<String, String> _lemsToGeppetto = new HashMap<String, String>();
 	private Map<String, String> _geppettoToLems = new HashMap<String, String>();
+	private ILEMSDocument _lemsDocument=null;
+	
+	private List<String> targetCells = null;
+	private Map<String, List<ANode>> visualizationNodes = null;
 
 	/*
 	 * (non-Javadoc)
@@ -134,13 +140,14 @@ public class JLEMSSimulatorService extends ASimulator
 	{
 		super.initialize(models, listener);
 		setTimeStepUnit("s");
+		visualizationNodes = new HashMap<String, List<ANode>>();
+		
 		try
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
 			// TODO Refactor simulators to deal with more than one model!
-			ILEMSDocument lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel("lems");
-
-			builder.addDocument(lemsDocument);
+			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(LEMS_ID);
+			builder.addDocument(_lemsDocument);
 
 			ILEMSBuildOptions options = new LEMSBuildOptions();
 			options.addBuildOption(LEMSBuildOptionsEnum.FLATTEN);
@@ -150,10 +157,23 @@ public class JLEMSSimulatorService extends ASimulator
 											// configuration and target from the
 											// file
 
-			_runConfig = LEMSDocumentReader.getLEMSRunConfiguration(lemsDocument);
-			config = new LEMSBuildConfiguration(LEMSDocumentReader.getTarget(lemsDocument));
+			_runConfig = LEMSDocumentReader.getLEMSRunConfiguration(_lemsDocument);
+			config = new LEMSBuildConfiguration(LEMSDocumentReader.getTarget(_lemsDocument));
 			Collection<ILEMSStateInstance> stateInstances = builder.build(config, options); // real build for our specific target
 
+			// Extract cells to display if target component exists
+			Lems lems = (Lems) _lemsDocument;
+			String targetComponent = LEMSDocumentReader.getTarget(_lemsDocument);
+			if (targetComponent !=null){
+				targetCells = new ArrayList<String>();
+				for (Component population: lems.getComponent(targetComponent).getChildrenAL("populations")){
+					targetCells.add(population.getAttributes().getByName("component").getValue());
+				}
+			}
+			else{
+				targetCells = null;
+			}
+			
 			_simulator = new LEMSSimulator();
 			for(ILEMSStateInstance instance : stateInstances)
 			{
@@ -190,23 +210,23 @@ public class JLEMSSimulatorService extends ASimulator
 	@Override
 	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException, GeppettoExecutionException
 	{
-
 		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
-
-		IModel model = aspectNode.getModel();
 		try
 		{
-			if(((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID) instanceof NeuroMLDocument)
-			{
-				NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
-				if(neuroml != null)
-				{
-					URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
-					_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml);
-					visualizationTree.setModified(true);
-					aspectNode.setModified(true);
-					((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
+			process((NeuroMLDocument) ((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID), visualizationTree, aspectNode);
+			
+			//If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
+			if (targetCells == null){
+				for (List<ANode> visualizationNodesItem : visualizationNodes.values()){
+					visualizationTree.addChildren(visualizationNodesItem);
 				}
+			}
+			else if (targetCells != null && targetCells.size() > 0){
+				for (Map.Entry<String, List<ANode>> entry : visualizationNodes.entrySet()) {
+					  if ( targetCells.contains(entry.getKey())){
+						  visualizationTree.addChildren(entry.getValue());
+					  }
+				}	  
 			}
 		}
 		catch(Exception e)
@@ -217,6 +237,21 @@ public class JLEMSSimulatorService extends ASimulator
 		notifyStateTreeUpdated();
 
 		return true;
+	}
+
+	/**
+	 * @param neuroml
+	 * @param visualizationTree
+	 * @param aspectNode
+	 * @param targetComponents 
+	 */
+	private void process(NeuroMLDocument neuroml, AspectSubTreeNode visualizationTree, AspectNode aspectNode)
+	{
+		_populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml, targetCells, visualizationNodes);
+		visualizationTree.setModified(true);
+		aspectNode.setModified(true);
+		((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
+		
 	}
 
 	/**
@@ -274,7 +309,6 @@ public class JLEMSSimulatorService extends ASimulator
 				for(IStateIdentifier state : results.getStates().keySet())
 				{
 					String statePath = state.getStatePath().replace("/", ".");
-					
 
 					AspectSubTreeNode simulationTree = getSimulationTreeFor(statePath, aspect.getSubTree(AspectTreeType.WATCH_TREE));
 					simulationTree.setModified(true);
@@ -419,7 +453,7 @@ public class JLEMSSimulatorService extends ASimulator
 					{
 						post = post.substring(1);
 					}
-					//We replace the pattern .digits. with [digits] as Geppetto doesn't support nodes that have numbers as names
+					// We replace the pattern .digits. with [digits] as Geppetto doesn't support nodes that have numbers as names
 					post = post.replaceAll("\\.(\\d*)\\.", "\\[$1\\]\\.");
 					_lemsToGeppetto.put(statePath, a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post);
 					_geppettoToLems.put(a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post, statePath);
