@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
@@ -70,6 +72,7 @@ public class NeuroMLSimulatorService extends ASimulator {
 	public static final String LEMS_ID = "lems";
 	
 	private Map<String, List<ANode>> visualizationNodes;
+	private static Log _logger = LogFactory.getLog(NeuroMLSimulatorService.class);
 	
 	// helper class for populating the visual tree of aspect node
 	private PopulateVisualTreeVisitor populateVisualTree = new PopulateVisualTreeVisitor();
@@ -99,6 +102,7 @@ public class NeuroMLSimulatorService extends ASimulator {
 	@Override
 	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException {
 
+		long start=System.currentTimeMillis();
 		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
 
 		IModel model = aspectNode.getModel();
@@ -119,6 +123,7 @@ public class NeuroMLSimulatorService extends ASimulator {
 		} catch (Exception e) {
 			throw new ModelInterpreterException(e);
 		}
+		_logger.info("Populate visual tree completed, took "+(System.currentTimeMillis()-start)+"ms");
 		return true;
 	}
 
