@@ -70,6 +70,8 @@ import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.VariableNode;
 import org.geppetto.core.model.values.ValuesFactory;
+import org.geppetto.core.services.ModelFormat;
+import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
@@ -681,5 +683,13 @@ public class JLEMSSimulatorService extends ASimulator
 	public String getId()
 	{
 		return this.jlemsSimulatorConfig.getSimulatorID();
+	}
+	
+	@Override
+	public void registerGeppettoService()
+	{
+		List<ModelFormat> modelFormatList = new ArrayList<ModelFormat>();
+		modelFormatList.add(new ModelFormat(LEMS_ID));
+		ServicesRegistry.registerSimulatorService(this, modelFormatList);
 	}
 }

@@ -33,6 +33,7 @@
 package org.geppetto.simulator.jlems;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,8 @@ import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.runtime.EntityNode;
+import org.geppetto.core.services.ModelFormat;
+import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
@@ -165,6 +168,11 @@ public class NeuroMLSimulatorService extends ASimulator {
 	public String getId() {
 		// TODO Auto-generated method stub
 		return "neuroMLSimulator";
+	}
+	
+	@Override
+	public void registerGeppettoService()
+	{
 	}
 
 }
