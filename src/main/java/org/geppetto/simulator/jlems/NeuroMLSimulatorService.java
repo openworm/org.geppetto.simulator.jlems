@@ -80,14 +80,13 @@ public class NeuroMLSimulatorService extends ASimulator {
 	@Override
 	public void initialize(List<IModel> models,	ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException {
 		super.initialize(models, listener);
-		advanceTimeStep(0);
 		visualizationNodes = new HashMap<String, List<ANode>>();
 	}
 
 	@Override
 	public void simulate(IRunConfiguration arg0, AspectNode aspect)
 			throws GeppettoExecutionException {
-		advanceTimeStep(0);
+		advanceTimeStep(0, aspect);
 		advanceRecordings(aspect);
 		notifyStateTreeUpdated();
 	}

@@ -300,7 +300,7 @@ public class JLEMSSimulatorService extends ASimulator
 	private void updateSimulationTree(ILEMSResultsContainer results, AspectNode aspect) throws GeppettoExecutionException
 	{
 
-		advanceTimeStep(_runConfig.getTimestep());
+		advanceTimeStep(_runConfig.getTimestep(), aspect);
 		if(isWatching())
 		{
 			if(watchListModified() || treesEmptied())
