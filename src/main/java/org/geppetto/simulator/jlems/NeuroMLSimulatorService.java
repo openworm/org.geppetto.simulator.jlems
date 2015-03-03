@@ -70,9 +70,7 @@ public class NeuroMLSimulatorService extends ASimulator {
 
 	@Autowired
 	private SimulatorConfig neuroMLSimulatorConfig;
-	private static final String NEUROML_ID = "neuroml";
 	private static final String URL_ID = "url";
-	public static final String LEMS_ID = "lems";
 	
 	private Map<String, List<ANode>> visualizationNodes;
 	private static Log _logger = LogFactory.getLog(NeuroMLSimulatorService.class);
@@ -111,7 +109,7 @@ public class NeuroMLSimulatorService extends ASimulator {
 		IModel model = aspectNode.getModel();
 
 		try {
-			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(NEUROML_ID);
+			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(Format.NEUROML_MODELFORMAT);
 			if (neuroml != null) {
 				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
 				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml, null, visualizationNodes);

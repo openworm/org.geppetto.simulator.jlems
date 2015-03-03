@@ -45,6 +45,7 @@ import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
+import org.geppetto.simulator.jlems.Format;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.lemsml.jlems.api.LEMSDocumentReader;
 import org.lemsml.jlems.api.LEMSRunConfiguration;
@@ -80,7 +81,7 @@ public class GenerateHDF5Recording
 
 			ILEMSDocumentReader lemsReader = new LEMSDocumentReader();
 			ILEMSDocument document = lemsReader.readModel(url);
-			lemsWrapper.wrapModel("lems", document);
+			lemsWrapper.wrapModel(Format.LEMS_MODELFORMAT, document);
 			JLEMSSimulatorService simulator = new JLEMSSimulatorService();
 			List<IModel> models = new ArrayList<IModel>();
 			models.add(lemsWrapper);
