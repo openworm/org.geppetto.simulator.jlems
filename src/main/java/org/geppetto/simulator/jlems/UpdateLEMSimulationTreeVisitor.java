@@ -114,6 +114,9 @@ public class UpdateLEMSimulationTreeVisitor extends DefaultStateVisitor {
 	 */
 	@Override
 	public boolean visitVariableNode(VariableNode node) {
+		if(node.getId().equals("time")){
+			return super.visitVariableNode(node);
+		}
 		String lemsState = _geppettoToLems.get(node.getInstancePath()).replace(
 				".", "/");
 		StateIdentifier stateId = new StateIdentifier(lemsState);
