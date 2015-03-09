@@ -32,13 +32,16 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
+import org.geppetto.core.services.IModelFormat;
+
 /**
  * @author Adrian Quintana (adrian.perez@ucl.ac.uk)
  *
  */
-public class Format {
+public enum ModelFormat implements IModelFormat
+{
 
-	public static String NEUROML_MODELFORMAT = "NeuroML";
-	public static String LEMS_MODELFORMAT = "LEMS";
+	NEUROML,
+	LEMS;
 	
 }

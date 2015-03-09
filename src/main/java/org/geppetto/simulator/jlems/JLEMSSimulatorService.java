@@ -70,7 +70,7 @@ import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.VariableNode;
 import org.geppetto.core.model.values.ValuesFactory;
-import org.geppetto.core.services.ModelFormat;
+import org.geppetto.core.services.IModelFormat;
 import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
@@ -145,7 +145,7 @@ public class JLEMSSimulatorService extends ASimulator
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
 			// TODO Refactor simulators to deal with more than one model!
-			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(Format.LEMS_MODELFORMAT);
+			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(ModelFormat.LEMS);
 			builder.addDocument(_lemsDocument);
 
 			ILEMSBuildOptions options = new LEMSBuildOptions();
@@ -212,7 +212,7 @@ public class JLEMSSimulatorService extends ASimulator
 		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
 		try
 		{
-			process((NeuroMLDocument) ((ModelWrapper) aspectNode.getModel()).getModel(Format.NEUROML_MODELFORMAT), visualizationTree, aspectNode);
+			process((NeuroMLDocument) ((ModelWrapper) aspectNode.getModel()).getModel(ModelFormat.NEUROML), visualizationTree, aspectNode);
 			
 			//If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
 			if (targetCells == null){
@@ -685,9 +685,8 @@ public class JLEMSSimulatorService extends ASimulator
 	@Override
 	public void registerGeppettoService()
 	{
-		List<ModelFormat> modelFormatList = new ArrayList<ModelFormat>();
-		modelFormatList.add(new ModelFormat(Format.LEMS_MODELFORMAT));
-//		modelFormatList.add(new ModelFormat("Neuron"));
+		List<IModelFormat> modelFormatList = new ArrayList<IModelFormat>();
+		modelFormatList.add(ModelFormat.LEMS);
 		ServicesRegistry.registerSimulatorService(this, modelFormatList);
 	}
 }

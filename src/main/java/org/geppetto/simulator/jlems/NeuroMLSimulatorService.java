@@ -52,7 +52,7 @@ import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.runtime.EntityNode;
-import org.geppetto.core.services.ModelFormat;
+import org.geppetto.core.services.IModelFormat;
 import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
@@ -109,7 +109,7 @@ public class NeuroMLSimulatorService extends ASimulator {
 		IModel model = aspectNode.getModel();
 
 		try {
-			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(Format.NEUROML_MODELFORMAT);
+			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(ModelFormat.NEUROML);
 			if (neuroml != null) {
 				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
 				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml, null, visualizationNodes);
@@ -171,6 +171,9 @@ public class NeuroMLSimulatorService extends ASimulator {
 	@Override
 	public void registerGeppettoService()
 	{
+		List<IModelFormat> modelFormatList = new ArrayList<IModelFormat>();
+		modelFormatList.add(ModelFormat.NEUROML);
+		ServicesRegistry.registerSimulatorService(this, modelFormatList);
 	}
 
 }
