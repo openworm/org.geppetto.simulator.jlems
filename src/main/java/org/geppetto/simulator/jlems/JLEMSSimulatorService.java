@@ -124,8 +124,8 @@ public class JLEMSSimulatorService extends ASimulator
 	private PopulateVisualTreeVisitor _populateVisualTree = new PopulateVisualTreeVisitor();
 	private Map<String, String> _lemsToGeppetto = new HashMap<String, String>();
 	private Map<String, String> _geppettoToLems = new HashMap<String, String>();
-	private ILEMSDocument _lemsDocument=null;
-	
+	private ILEMSDocument _lemsDocument = null;
+
 	private List<String> targetCells = null;
 	private Map<String, List<ANode>> visualizationNodes = null;
 
@@ -140,7 +140,7 @@ public class JLEMSSimulatorService extends ASimulator
 		super.initialize(models, listener);
 		setTimeStepUnit("s");
 		visualizationNodes = new HashMap<String, List<ANode>>();
-		
+
 		try
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
@@ -163,16 +163,19 @@ public class JLEMSSimulatorService extends ASimulator
 			// Extract cells to display if target component exists
 			Lems lems = (Lems) _lemsDocument;
 			String targetComponent = LEMSDocumentReader.getTarget(_lemsDocument);
-			if (targetComponent !=null){
+			if(targetComponent != null)
+			{
 				targetCells = new ArrayList<String>();
-				for (Component population: lems.getComponent(targetComponent).getChildrenAL("populations")){
+				for(Component population : lems.getComponent(targetComponent).getChildrenAL("populations"))
+				{
 					targetCells.add(population.getAttributes().getByName("component").getValue());
 				}
 			}
-			else{
+			else
+			{
 				targetCells = null;
 			}
-			
+
 			_simulator = new LEMSSimulator();
 			for(ILEMSStateInstance instance : stateInstances)
 			{
@@ -213,20 +216,24 @@ public class JLEMSSimulatorService extends ASimulator
 		try
 		{
 			process((NeuroMLDocument) ((ModelWrapper) aspectNode.getModel()).getModel(ModelFormat.NEUROML), visualizationTree, aspectNode);
-			
+
 			//If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
 			if (targetCells == null){
 				for (List<ANode> visualizationNodesItem : visualizationNodes.values()){
 					visualizationTree.addChildren(visualizationNodesItem);
 				}
 			}
-			else if (targetCells != null && targetCells.size() > 0){
-				for (Map.Entry<String, List<ANode>> entry : visualizationNodes.entrySet()) {
-					  if ( targetCells.contains(entry.getKey())){
-						  visualizationTree.addChildren(entry.getValue());
-					  }
-				}	  
+			else if(targetCells != null && targetCells.size() > 0)
+			{
+				for(Map.Entry<String, List<ANode>> entry : visualizationNodes.entrySet())
+				{
+					if(targetCells.contains(entry.getKey()))
+					{
+						visualizationTree.addChildren(entry.getValue());
+					}
+				}
 			}
+
 		}
 		catch(Exception e)
 		{
@@ -242,7 +249,7 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @param neuroml
 	 * @param visualizationTree
 	 * @param aspectNode
-	 * @param targetComponents 
+	 * @param targetComponents
 	 */
 	private void process(NeuroMLDocument neuroml, AspectSubTreeNode visualizationTree, AspectNode aspectNode)
 	{
@@ -250,7 +257,7 @@ public class JLEMSSimulatorService extends ASimulator
 		visualizationTree.setModified(true);
 		aspectNode.setModified(true);
 		((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
-		
+
 	}
 
 	/**
