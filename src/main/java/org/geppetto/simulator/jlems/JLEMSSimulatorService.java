@@ -70,6 +70,8 @@ import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.VariableNode;
 import org.geppetto.core.model.values.ValuesFactory;
+import org.geppetto.core.services.IModelFormat;
+import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
@@ -119,9 +121,6 @@ public class JLEMSSimulatorService extends ASimulator
 	@Autowired
 	private SimulatorConfig jlemsSimulatorConfig;
 
-	private static final String NEUROML_ID = "neuroml";
-	public static final String LEMS_ID = "lems";
-
 	private PopulateVisualTreeVisitor _populateVisualTree = new PopulateVisualTreeVisitor();
 	private Map<String, String> _lemsToGeppetto = new HashMap<String, String>();
 	private Map<String, String> _geppettoToLems = new HashMap<String, String>();
@@ -146,7 +145,7 @@ public class JLEMSSimulatorService extends ASimulator
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
 			// TODO Refactor simulators to deal with more than one model!
-			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(LEMS_ID);
+			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(ModelFormat.LEMS);
 			builder.addDocument(_lemsDocument);
 
 			ILEMSBuildOptions options = new LEMSBuildOptions();
@@ -216,31 +215,25 @@ public class JLEMSSimulatorService extends ASimulator
 		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
 		try
 		{
-			NeuroMLDocument nmlDoc = (NeuroMLDocument) ((ModelWrapper) aspectNode.getModel()).getModel(NEUROML_ID);
-			if(nmlDoc != null)
-			{
-				//there is not going to be any visual representation without a NeuroML document, e.g. in case of a pure LEMS model
-				process(nmlDoc, visualizationTree, aspectNode);
+			process((NeuroMLDocument) ((ModelWrapper) aspectNode.getModel()).getModel(ModelFormat.NEUROML), visualizationTree, aspectNode);
 
-				// If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
-				if(targetCells == null)
-				{
-					for(List<ANode> visualizationNodesItem : visualizationNodes.values())
-					{
-						visualizationTree.addChildren(visualizationNodesItem);
-					}
+			//If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
+			if (targetCells == null){
+				for (List<ANode> visualizationNodesItem : visualizationNodes.values()){
+					visualizationTree.addChildren(visualizationNodesItem);
 				}
-				else if(targetCells != null && targetCells.size() > 0)
+			}
+			else if(targetCells != null && targetCells.size() > 0)
+			{
+				for(Map.Entry<String, List<ANode>> entry : visualizationNodes.entrySet())
 				{
-					for(Map.Entry<String, List<ANode>> entry : visualizationNodes.entrySet())
+					if(targetCells.contains(entry.getKey()))
 					{
-						if(targetCells.contains(entry.getKey()))
-						{
-							visualizationTree.addChildren(entry.getValue());
-						}
+						visualizationTree.addChildren(entry.getValue());
 					}
 				}
 			}
+
 		}
 		catch(Exception e)
 		{
@@ -694,5 +687,13 @@ public class JLEMSSimulatorService extends ASimulator
 	public String getId()
 	{
 		return this.jlemsSimulatorConfig.getSimulatorID();
+	}
+	
+	@Override
+	public void registerGeppettoService()
+	{
+		List<IModelFormat> modelFormatList = new ArrayList<IModelFormat>();
+		modelFormatList.add(ModelFormat.LEMS);
+		ServicesRegistry.registerSimulatorService(this, modelFormatList);
 	}
 }
