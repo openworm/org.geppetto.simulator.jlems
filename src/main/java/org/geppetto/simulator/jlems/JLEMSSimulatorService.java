@@ -32,19 +32,6 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-
-import javax.measure.quantity.Quantity;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geppetto.core.beans.SimulatorConfig;
@@ -69,11 +56,13 @@ import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.VariableNode;
+import org.geppetto.core.model.values.DoubleValue;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.services.IModelFormat;
 import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
+import org.geppetto.core.simulation.SimulationVariablesMessage;
 import org.geppetto.core.simulator.ASimulator;
 import org.geppetto.core.utilities.VariablePathSerializer;
 import org.lemsml.jlems.api.ALEMSValue;
@@ -87,6 +76,7 @@ import org.lemsml.jlems.api.LEMSDoubleValue;
 import org.lemsml.jlems.api.LEMSExecutionException;
 import org.lemsml.jlems.api.LEMSResultsContainer;
 import org.lemsml.jlems.api.LEMSSimulator;
+import org.lemsml.jlems.api.StateIdentifier;
 import org.lemsml.jlems.api.interfaces.ILEMSBuildConfiguration;
 import org.lemsml.jlems.api.interfaces.ILEMSBuildOptions;
 import org.lemsml.jlems.api.interfaces.ILEMSBuilder;
@@ -104,6 +94,18 @@ import org.lemsml.jlems.core.type.Lems;
 import org.neuroml.model.NeuroMLDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.measure.quantity.Quantity;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 /**
  * @author matteocantarelli
@@ -295,6 +297,7 @@ public class JLEMSSimulatorService extends ASimulator
 		}
 
 		updateSimulationTree(results, aspect);
+		collectVariablesToSend(results, aspect);
 		notifyStateTreeUpdated();
 	}
 
@@ -400,6 +403,29 @@ public class JLEMSSimulatorService extends ASimulator
 				{
 					throw new GeppettoExecutionException(updateStateTreeVisitor.getError());
 				}
+			}
+		}
+	}
+
+	private void collectVariablesToSend(ILEMSResultsContainer results, AspectNode aspect) {
+		if (_variableToSimvarMsg.size() == 0) {
+			return;
+		}
+
+		for (String varName : _variableToSimvarMsg.keySet()) {
+			String lemsState = varName.replace(".", "/");
+			StateIdentifier stateId = new StateIdentifier(lemsState);
+			if (!results.getStates().containsKey(stateId)) {
+				_logger.warn("LEMS variable " + lemsState + " is not found");
+				continue;
+			}
+
+			ALEMSValue lemsValue = results.getState(stateId).getLastValue();
+			if (lemsValue instanceof LEMSDoubleValue) {
+				SimulationVariablesMessage msg = _variableToSimvarMsg.get(varName);
+				_logger.debug("New variable " + varName + " added!");
+				msg.addVariable(varName, new DoubleValue(((LEMSDoubleValue) lemsValue)
+						.getAsDouble()));
 			}
 		}
 	}
