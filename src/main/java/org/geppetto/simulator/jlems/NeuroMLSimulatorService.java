@@ -32,11 +32,8 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems;
 
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,19 +42,13 @@ import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.IModel;
-import org.geppetto.core.model.ModelInterpreterException;
-import org.geppetto.core.model.ModelWrapper;
-import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectNode;
-import org.geppetto.core.model.runtime.AspectSubTreeNode;
-import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
-import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.services.IModelFormat;
 import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
-import org.neuroml.model.NeuroMLDocument;
+import org.geppetto.core.simulator.AVariableWatchFeature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -70,18 +61,14 @@ public class NeuroMLSimulatorService extends ASimulator {
 
 	@Autowired
 	private SimulatorConfig neuroMLSimulatorConfig;
-	private static final String URL_ID = "url";
 	
-	private Map<String, List<ANode>> visualizationNodes;
 	private static Log _logger = LogFactory.getLog(NeuroMLSimulatorService.class);
 	
-	// helper class for populating the visual tree of aspect node
-	private PopulateVisualTreeVisitor populateVisualTree = new PopulateVisualTreeVisitor();
-
 	@Override
 	public void initialize(List<IModel> models,	ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException {
 		super.initialize(models, listener);
-		visualizationNodes = new HashMap<String, List<ANode>>();
+		//add variable watch feature
+		this.addFeature(new AVariableWatchFeature());
 	}
 
 	@Override
@@ -92,68 +79,9 @@ public class NeuroMLSimulatorService extends ASimulator {
 		notifyStateTreeUpdated();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.geppetto.core.simulator.ISimulator#populateVisualTree(org.geppetto
-	 * .core.model.runtime.AspectNode)
-	 */
-	@Override
-	public boolean populateVisualTree(AspectNode aspectNode) throws ModelInterpreterException {
-
-		long start=System.currentTimeMillis();
-		AspectSubTreeNode visualizationTree = (AspectSubTreeNode) aspectNode.getSubTree(AspectTreeType.VISUALIZATION_TREE);
-
-		IModel model = aspectNode.getModel();
-
-		try {
-			NeuroMLDocument neuroml = (NeuroMLDocument) ((ModelWrapper) model).getModel(ModelFormat.NEUROML);
-			if (neuroml != null) {
-				URL url = (URL) ((ModelWrapper) model).getModel(URL_ID);
-				populateVisualTree.createNodesFromNeuroMLDocument(visualizationTree, neuroml, null, visualizationNodes);
-				//If a cell is not part of a network or there is not a target component, add it to to the visualizationtree
-				for (List<ANode> visualizationNodesItem : visualizationNodes.values()){
-					visualizationTree.addChildren(visualizationNodesItem);
-				}
-				visualizationTree.setModified(true);
-				aspectNode.setModified(true);
-				((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
-			}
-		} catch (Exception e) {
-			throw new ModelInterpreterException(e);
-		}
-		_logger.info("Populate visual tree completed, took "+(System.currentTimeMillis()-start)+"ms");
-		return true;
-	}
-
 	@Override
 	public VariableList getForceableVariables() {
 		return new VariableList();
-	}
-
-	@Override
-	public VariableList getWatchableVariables() {
-		return new VariableList();
-	}
-
-	public void addWatchVariables(List<String> variableNames) {
-		super.addWatchVariables(variableNames);
-	}
-
-	@Override
-	public void startWatch() {
-		super.startWatch();
-	}
-
-	@Override
-	public void stopWatch() {
-		super.stopWatch();
-	}
-
-	@Override
-	public void clearWatchVariables() {
-		super.clearWatchVariables();
 	}
 
 	@Override
