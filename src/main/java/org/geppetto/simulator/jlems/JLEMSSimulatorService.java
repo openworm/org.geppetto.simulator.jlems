@@ -160,6 +160,8 @@ public class JLEMSSimulatorService extends ASimulator
 			}
 
 			this.notifyStateTreeUpdated();
+			
+			//add variable watch feature
 			this.addFeature(new AVariableWatchFeature());
 			setWatchableVariables();
 		}
@@ -232,7 +234,7 @@ public class JLEMSSimulatorService extends ASimulator
 		advanceTimeStep(_runConfig.getTimestep(), aspect);
 		if(watchFeature.isWatching())
 		{
-			if(treesEmptied())
+			if(watchFeature.watchListModified())
 			{
 				for(IStateIdentifier state : results.getStates().keySet())
 				{
@@ -315,7 +317,7 @@ public class JLEMSSimulatorService extends ASimulator
 							}
 						}
 					}
-					treesEmptied(false);
+					watchFeature.setWatchListModified(false);
 
 				}}
 			else

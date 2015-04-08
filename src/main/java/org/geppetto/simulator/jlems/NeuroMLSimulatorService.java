@@ -48,6 +48,7 @@ import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
+import org.geppetto.core.simulator.AVariableWatchFeature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -66,6 +67,8 @@ public class NeuroMLSimulatorService extends ASimulator {
 	@Override
 	public void initialize(List<IModel> models,	ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException {
 		super.initialize(models, listener);
+		//add variable watch feature
+		this.addFeature(new AVariableWatchFeature());
 	}
 
 	@Override

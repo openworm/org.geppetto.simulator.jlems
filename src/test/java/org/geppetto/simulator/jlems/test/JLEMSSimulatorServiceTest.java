@@ -44,6 +44,7 @@ import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.features.IVariableWatchFeature;
 import org.geppetto.core.model.data.DataModelFactory;
 import org.geppetto.core.services.GeppettoFeature;
+import org.geppetto.core.simulator.AVariableWatchFeature;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.junit.Test;
 import org.lemsml.jlems.api.LEMSRunConfiguration;
@@ -106,6 +107,7 @@ public class JLEMSSimulatorServiceTest
 	{
 		setup();
 		JLEMSSimulatorService simulator = new JLEMSSimulatorService();
+		simulator.addFeature(new AVariableWatchFeature());
 		simulator.setRunConfig(_runConfig);
 		simulator.setWatchableVariables();
 		
