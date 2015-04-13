@@ -152,7 +152,7 @@ public class JLEMSSimulatorServiceTest
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		Assert.assertEquals(mapper.writer().writeValueAsString(expectedList), mapper.writer().writeValueAsString(((IVariableWatchFeature)simulator.getFeature(GeppettoFeature.VARIALE_WATCH_FEATURE)).getWatcheableVariables()));
+		Assert.assertEquals(mapper.writer().writeValueAsString(expectedList), mapper.writer().writeValueAsString(((IVariableWatchFeature)simulator.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)).getWatcheableVariables()));
 	}
 	
 	@Test
