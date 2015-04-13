@@ -230,7 +230,7 @@ public class JLEMSSimulatorService extends ASimulator
 	private void updateSimulationTree(ILEMSResultsContainer results, AspectNode aspect) throws GeppettoExecutionException
 	{
 		IVariableWatchFeature watchFeature =
-				((IVariableWatchFeature)this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE));
+				((IVariableWatchFeature)this.getFeature(GeppettoFeature.VARIALE_WATCH_FEATURE));
 		advanceTimeStep(_runConfig.getTimestep(), aspect);
 		if(watchFeature.isWatching())
 		{
@@ -541,7 +541,7 @@ public class JLEMSSimulatorService extends ASimulator
 
 		for(IStateRecord state : _runConfig.getRecordedStates())
 		{
-			List<AVariable> listToCheck = ((IVariableWatchFeature)this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)).getWatcheableVariables().getVariables();
+			List<AVariable> listToCheck = ((IVariableWatchFeature)this.getFeature(GeppettoFeature.VARIALE_WATCH_FEATURE)).getWatcheableVariables().getVariables();
 			StringTokenizer stok = new StringTokenizer(state.getState().getStatePath(), "/");
 
 			while(stok.hasMoreTokens())
