@@ -93,7 +93,7 @@ public class UpdateLEMSimulationTreeVisitor extends DefaultStateVisitor {
 	 */
 	@Override
 	public boolean outAspectSubTreeNode(AspectSubTreeNode node) {
-		if (node.getType().equals(AspectTreeType.WATCH_TREE)
+		if (node.getType().equals(AspectTreeType.SIMULATION_TREE)
 				&& _modifiedSimulationTree) {
 			node.setModified(true);
 			_modifiedSimulationTree = false;
@@ -114,23 +114,25 @@ public class UpdateLEMSimulationTreeVisitor extends DefaultStateVisitor {
 	 */
 	@Override
 	public boolean visitVariableNode(VariableNode node) {
-		if(node.getId().equals("time")){
-			return super.visitVariableNode(node);
-		}
-		String lemsState = _geppettoToLems.get(node.getInstancePath()).replace(
-				".", "/");
-		StateIdentifier stateId = new StateIdentifier(lemsState);
-		if (!_lemsResults.getStates().containsKey(stateId)) {
-			_errorMessage = stateId + " not found in LEMS results:"
-					+ _lemsResults.getStates();
-		}
-		ALEMSValue lemsValue = _lemsResults.getState(stateId).getLastValue();
-		if (lemsValue instanceof LEMSDoubleValue) {
-			PhysicalQuantity quantity = new PhysicalQuantity();
-			quantity.setValue(new DoubleValue(((LEMSDoubleValue) lemsValue)
-					.getAsDouble()));
-			node.addPhysicalQuantity(quantity);
-			_modifiedSimulationTree = true;
+		if (node.isWatched()){
+			if(node.getId().equals("time")){
+				return super.visitVariableNode(node);
+			}
+			String lemsState = _geppettoToLems.get(node.getInstancePath()).replace(
+					".", "/");
+			StateIdentifier stateId = new StateIdentifier(lemsState);
+			if (!_lemsResults.getStates().containsKey(stateId)) {
+				_errorMessage = stateId + " not found in LEMS results:"
+						+ _lemsResults.getStates();
+			}
+			ALEMSValue lemsValue = _lemsResults.getState(stateId).getLastValue();
+			if (lemsValue instanceof LEMSDoubleValue) {
+				PhysicalQuantity quantity = new PhysicalQuantity();
+				quantity.setValue(new DoubleValue(((LEMSDoubleValue) lemsValue)
+						.getAsDouble()));
+				node.addPhysicalQuantity(quantity);
+				_modifiedSimulationTree = true;
+			}
 		}
 		return super.visitVariableNode(node);
 	}

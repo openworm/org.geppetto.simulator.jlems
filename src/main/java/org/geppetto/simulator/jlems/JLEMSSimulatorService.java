@@ -69,6 +69,7 @@ import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.VariableNode;
+import org.geppetto.core.model.state.visitors.IterateWatchableVariableListVisitor;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.services.GeppettoFeature;
 import org.geppetto.core.services.IModelFormat;
@@ -163,7 +164,7 @@ public class JLEMSSimulatorService extends ASimulator
 			
 			//add variable watch feature
 			this.addFeature(new AVariableWatchFeature());
-			setWatchableVariables();
+			//setWatchableVariables();
 		}
 		catch(LEMSBuildException e)
 		{
@@ -240,7 +241,7 @@ public class JLEMSSimulatorService extends ASimulator
 				{
 					String statePath = state.getStatePath().replace("/", ".");
 
-					AspectSubTreeNode simulationTree = getSimulationTreeFor(statePath, aspect.getSubTree(AspectTreeType.WATCH_TREE));
+					AspectSubTreeNode simulationTree = getSimulationTreeFor(statePath, aspect.getSubTree(AspectTreeType.SIMULATION_TREE));
 					simulationTree.setModified(true);
 					AspectNode aspectNode = (AspectNode) simulationTree.getParent();
 					aspectNode.setModified(true);
@@ -249,10 +250,12 @@ public class JLEMSSimulatorService extends ASimulator
 					// tree
 					String fullPath = _lemsToGeppetto.get(statePath);
 					// check which watchable variables are being watched
-					for(AVariable var : watchFeature.getWatcheableVariables().getVariables())
+					IterateWatchableVariableListVisitor readWatchableVariableListVisitor = new IterateWatchableVariableListVisitor();
+					simulationTree.apply(readWatchableVariableListVisitor);
+					
+					for(String watchedVariable : readWatchableVariableListVisitor.getWatchableVariableList())
 					{
-						String varName = var.getName();
-						if(varName.equals(fullPath))
+						if(watchedVariable.equals(fullPath))
 						{
 							String post = fullPath.replace(simulationTree.getInstancePath(), "");
 							StringTokenizer tokenizer = new StringTokenizer(post, ".");
@@ -389,9 +392,9 @@ public class JLEMSSimulatorService extends ASimulator
 					}
 					// We replace the pattern .digits. with [digits] as Geppetto doesn't support nodes that have numbers as names
 					post = post.replaceAll("\\.(\\d*)\\.", "\\[$1\\]\\.");
-					_lemsToGeppetto.put(statePath, a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post);
-					_geppettoToLems.put(a.getSubTree(AspectTreeType.WATCH_TREE).getInstancePath() + "." + post, statePath);
-					return a.getSubTree(AspectTreeType.WATCH_TREE);
+					_lemsToGeppetto.put(statePath, a.getSubTree(AspectTreeType.SIMULATION_TREE).getInstancePath() + "." + post);
+					_geppettoToLems.put(a.getSubTree(AspectTreeType.SIMULATION_TREE).getInstancePath() + "." + post, statePath);
+					return a.getSubTree(AspectTreeType.SIMULATION_TREE);
 				}
 			}
 			return null;
@@ -537,71 +540,74 @@ public class JLEMSSimulatorService extends ASimulator
 	public void setWatchableVariables()
 	{
 
+		//FIXME
+		
 		SimpleType floatType = DataModelFactory.getSimpleType(Type.FLOAT);
 
 		for(IStateRecord state : _runConfig.getRecordedStates())
 		{
-			List<AVariable> listToCheck = ((IVariableWatchFeature)this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)).getWatcheableVariables().getVariables();
-			StringTokenizer stok = new StringTokenizer(state.getState().getStatePath(), "/");
-
-			while(stok.hasMoreTokens())
-			{
-				String s = stok.nextToken();
-				String searchVar = s;
-
-				if(ArrayUtils.isArray(s))
-				{
-					searchVar = ArrayUtils.getArrayName(s);
-				}
-
-				AVariable v = this.getVariable(searchVar, listToCheck);
-
-				if(v == null)
-				{
-					if(stok.hasMoreTokens())
-					{
-						StructuredType structuredType = new StructuredType();
-						structuredType.setName(searchVar + "T");
-
-						if(ArrayUtils.isArray(s))
-						{
-							v = DataModelFactory.getArrayVariable(searchVar, structuredType, ArrayUtils.getArrayIndex(s) + 1);
-						}
-						else
-						{
-							v = DataModelFactory.getSimpleVariable(searchVar, structuredType);
-						}
-						listToCheck.add(v);
-						listToCheck = structuredType.getVariables();
-					}
-					else
-					{
-						if(ArrayUtils.isArray(s))
-						{
-							v = DataModelFactory.getArrayVariable(searchVar, floatType, ArrayUtils.getArrayIndex(s) + 1);
-						}
-						else
-						{
-							v = DataModelFactory.getSimpleVariable(searchVar, floatType);
-						}
-						listToCheck.add(v);
-					}
-				}
-				else
-				{
-					if(stok.hasMoreTokens())
-					{
-						listToCheck = ((StructuredType) v.getType()).getVariables();
-						if(ArrayUtils.isArray(s))
-						{
-							if(ArrayUtils.getArrayIndex(s) + 1 > ((ArrayVariable) v).getSize())
-							{
-								((ArrayVariable) v).setSize(ArrayUtils.getArrayIndex(s) + 1);
-							}
-						}
-					}
-				}
-			}
+			//((IVariableWatchFeature)this.getFeature(GeppettoFeature.WATCHABLE_VARIABLE_LIST_FEATURE)).setWatchedVariable();
+//			List<AVariable> listToCheck = ((IVariableWatchFeature)this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)).getWatcheableVariables().getVariables();
+//			StringTokenizer stok = new StringTokenizer(state.getState().getStatePath(), "/");
+//
+//			while(stok.hasMoreTokens())
+//			{
+//				String s = stok.nextToken();
+//				String searchVar = s;
+//
+//				if(ArrayUtils.isArray(s))
+//				{
+//					searchVar = ArrayUtils.getArrayName(s);
+//				}
+//
+//				AVariable v = this.getVariable(searchVar, listToCheck);
+//
+//				if(v == null)
+//				{
+//					if(stok.hasMoreTokens())
+//					{
+//						StructuredType structuredType = new StructuredType();
+//						structuredType.setName(searchVar + "T");
+//
+//						if(ArrayUtils.isArray(s))
+//						{
+//							v = DataModelFactory.getArrayVariable(searchVar, structuredType, ArrayUtils.getArrayIndex(s) + 1);
+//						}
+//						else
+//						{
+//							v = DataModelFactory.getSimpleVariable(searchVar, structuredType);
+//						}
+//						listToCheck.add(v);
+//						listToCheck = structuredType.getVariables();
+//					}
+//					else
+//					{
+//						if(ArrayUtils.isArray(s))
+//						{
+//							v = DataModelFactory.getArrayVariable(searchVar, floatType, ArrayUtils.getArrayIndex(s) + 1);
+//						}
+//						else
+//						{
+//							v = DataModelFactory.getSimpleVariable(searchVar, floatType);
+//						}
+//						listToCheck.add(v);
+//					}
+//				}
+//				else
+//				{
+//					if(stok.hasMoreTokens())
+//					{
+//						listToCheck = ((StructuredType) v.getType()).getVariables();
+//						if(ArrayUtils.isArray(s))
+//						{
+//							if(ArrayUtils.getArrayIndex(s) + 1 > ((ArrayVariable) v).getSize())
+//							{
+//								((ArrayVariable) v).setSize(ArrayUtils.getArrayIndex(s) + 1);
+//							}
+//						}
+//					}
+//				}
+//			}
 		}
 	}
 
