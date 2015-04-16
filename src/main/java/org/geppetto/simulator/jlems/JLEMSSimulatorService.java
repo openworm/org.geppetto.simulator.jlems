@@ -164,7 +164,6 @@ public class JLEMSSimulatorService extends ASimulator
 			
 			//add variable watch feature
 			this.addFeature(new AVariableWatchFeature());
-			//setWatchableVariables();
 		}
 		catch(LEMSBuildException e)
 		{
@@ -531,83 +530,6 @@ public class JLEMSSimulatorService extends ASimulator
 		else
 		{
 			return 0f;
-		}
-	}
-
-	/**
-	 * 
-	 */
-	public void setWatchableVariables()
-	{
-
-		//FIXME
-		
-		SimpleType floatType = DataModelFactory.getSimpleType(Type.FLOAT);
-
-		for(IStateRecord state : _runConfig.getRecordedStates())
-		{
-			//((IVariableWatchFeature)this.getFeature(GeppettoFeature.WATCHABLE_VARIABLE_LIST_FEATURE)).setWatchedVariable();
-//			List<AVariable> listToCheck = ((IVariableWatchFeature)this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)).getWatcheableVariables().getVariables();
-//			StringTokenizer stok = new StringTokenizer(state.getState().getStatePath(), "/");
-//
-//			while(stok.hasMoreTokens())
-//			{
-//				String s = stok.nextToken();
-//				String searchVar = s;
-//
-//				if(ArrayUtils.isArray(s))
-//				{
-//					searchVar = ArrayUtils.getArrayName(s);
-//				}
-//
-//				AVariable v = this.getVariable(searchVar, listToCheck);
-//
-//				if(v == null)
-//				{
-//					if(stok.hasMoreTokens())
-//					{
-//						StructuredType structuredType = new StructuredType();
-//						structuredType.setName(searchVar + "T");
-//
-//						if(ArrayUtils.isArray(s))
-//						{
-//							v = DataModelFactory.getArrayVariable(searchVar, structuredType, ArrayUtils.getArrayIndex(s) + 1);
-//						}
-//						else
-//						{
-//							v = DataModelFactory.getSimpleVariable(searchVar, structuredType);
-//						}
-//						listToCheck.add(v);
-//						listToCheck = structuredType.getVariables();
-//					}
-//					else
-//					{
-//						if(ArrayUtils.isArray(s))
-//						{
-//							v = DataModelFactory.getArrayVariable(searchVar, floatType, ArrayUtils.getArrayIndex(s) + 1);
-//						}
-//						else
-//						{
-//							v = DataModelFactory.getSimpleVariable(searchVar, floatType);
-//						}
-//						listToCheck.add(v);
-//					}
-//				}
-//				else
-//				{
-//					if(stok.hasMoreTokens())
-//					{
-//						listToCheck = ((StructuredType) v.getType()).getVariables();
-//						if(ArrayUtils.isArray(s))
-//						{
-//							if(ArrayUtils.getArrayIndex(s) + 1 > ((ArrayVariable) v).getSize())
-//							{
-//								((ArrayVariable) v).setSize(ArrayUtils.getArrayIndex(s) + 1);
-//							}
-//						}
-//					}
-//				}
-//			}
 		}
 	}
 
