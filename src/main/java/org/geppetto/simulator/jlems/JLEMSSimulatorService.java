@@ -153,8 +153,8 @@ public class JLEMSSimulatorService extends ASimulator
 			}
 
 			this.notifyStateTreeUpdated();
-			
-			//add variable watch feature
+
+			// add variable watch feature
 			this.addFeature(new AVariableWatchFeature());
 		}
 		catch(LEMSBuildException e)
@@ -221,107 +221,105 @@ public class JLEMSSimulatorService extends ASimulator
 	 */
 	private void updateSimulationTree(ILEMSResultsContainer results, AspectNode aspect) throws GeppettoExecutionException
 	{
-		IVariableWatchFeature watchFeature =
-				((IVariableWatchFeature)this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE));
+		IVariableWatchFeature watchFeature = ((IVariableWatchFeature) this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE));
 		advanceTimeStep(_runConfig.getTimestep(), aspect);
-		if(watchFeature.isWatching())
-		{
-			if(watchFeature.watchListModified())
-			{
-				for(IStateIdentifier state : results.getStates().keySet())
-				{
-					String statePath = state.getStatePath().replace("/", ".");
 
-					AspectSubTreeNode simulationTree = getSimulationTreeFor(statePath, aspect.getSubTree(AspectTreeType.SIMULATION_TREE));
-					simulationTree.setModified(true);
-					AspectNode aspectNode = (AspectNode) simulationTree.getParent();
-					aspectNode.setModified(true);
-					((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
-					// for every state found in the results add a node in the
-					// tree
-					String fullPath = _lemsToGeppetto.get(statePath);
-					// check which watchable variables are being watched
-					SerializeUpdateSimulationTreeVisitor readWatchableVariableListVisitor = new SerializeUpdateSimulationTreeVisitor();
-					simulationTree.apply(readWatchableVariableListVisitor);
-					
-					for(String watchedVariable : readWatchableVariableListVisitor.getWatchableVariableList())
+		if(watchFeature.watchListModified())
+		{
+			for(IStateIdentifier state : results.getStates().keySet())
+			{
+				String statePath = state.getStatePath().replace("/", ".");
+
+				AspectSubTreeNode simulationTree = getSimulationTreeFor(statePath, aspect.getSubTree(AspectTreeType.SIMULATION_TREE));
+				simulationTree.setModified(true);
+				AspectNode aspectNode = (AspectNode) simulationTree.getParent();
+				aspectNode.setModified(true);
+				((EntityNode) aspectNode.getParentEntity()).updateParentEntitiesFlags(true);
+				// for every state found in the results add a node in the
+				// tree
+				String fullPath = _lemsToGeppetto.get(statePath);
+				// check which watchable variables are being watched
+				SerializeUpdateSimulationTreeVisitor readWatchableVariableListVisitor = new SerializeUpdateSimulationTreeVisitor();
+				simulationTree.apply(readWatchableVariableListVisitor);
+
+				for(String watchedVariable : readWatchableVariableListVisitor.getWatchableVariableList())
+				{
+					if(watchedVariable.equals(fullPath))
 					{
-						if(watchedVariable.equals(fullPath))
+						String post = fullPath.replace(simulationTree.getInstancePath(), "");
+						StringTokenizer tokenizer = new StringTokenizer(post, ".");
+						ACompositeNode node = simulationTree;
+						while(tokenizer.hasMoreElements())
 						{
-							String post = fullPath.replace(simulationTree.getInstancePath(), "");
-							StringTokenizer tokenizer = new StringTokenizer(post, ".");
-							ACompositeNode node = simulationTree;
-							while(tokenizer.hasMoreElements())
+							String current = tokenizer.nextToken();
+							boolean found = false;
+							for(ANode child : node.getChildren())
 							{
-								String current = tokenizer.nextToken();
-								boolean found = false;
-								for(ANode child : node.getChildren())
+								if(child.getId().equals(current))
 								{
-									if(child.getId().equals(current))
+									if(child instanceof ACompositeNode)
 									{
-										if(child instanceof ACompositeNode)
-										{
-											node = (ACompositeNode) child;
-										}
-										found = true;
-										break;
+										node = (ACompositeNode) child;
 									}
+									found = true;
+									break;
 								}
-								if(found)
+							}
+							if(found)
+							{
+								continue;
+							}
+							else
+							{
+								if(tokenizer.hasMoreElements())
 								{
-									continue;
+									// not a leaf, create a composite state node
+									CompositeNode newNode = new CompositeNode(current);
+									newNode.setId(current);
+									node.addChild(newNode);
+									node = newNode;
 								}
 								else
 								{
-									if(tokenizer.hasMoreElements())
+									// it's a leaf node
+									VariableNode newNode = new VariableNode(current);
+									newNode.setId(current);
+									// commenting out until it's working
+									/*
+									 * Unit<? extends Quantity> unit = getUnitFromLEMSDimension (results.getStates ().get(state).getDimension()); newNode.setUnit(unit.toString());
+									 * 
+									 * UnitConverter r = unit.getConverterTo(unit .getStandardUnit());
+									 * 
+									 * long factor = 0; if(r instanceof RationalConverter ){ factor = ((RationalConverter) r).getDivisor(); }
+									 * 
+									 * newNode.setScalingFactor(_df.format(factor ));
+									 */
+									ALEMSValue lemsValue = results.getStates().get(state).getLastValue();
+									if(lemsValue instanceof LEMSDoubleValue)
 									{
-										// not a leaf, create a composite state node
-										CompositeNode newNode = new CompositeNode(current);
-										newNode.setId(current);
-										node.addChild(newNode);
-										node = newNode;
-									}
-									else
-									{
-										// it's a leaf node
-										VariableNode newNode = new VariableNode(current);
-										newNode.setId(current);
-										// commenting out until it's working
-										/*
-										 * Unit<? extends Quantity> unit = getUnitFromLEMSDimension (results.getStates ().get(state).getDimension()); newNode.setUnit(unit.toString());
-										 * 
-										 * UnitConverter r = unit.getConverterTo(unit .getStandardUnit());
-										 * 
-										 * long factor = 0; if(r instanceof RationalConverter ){ factor = ((RationalConverter) r).getDivisor(); }
-										 * 
-										 * newNode.setScalingFactor(_df.format(factor ));
-										 */
-										ALEMSValue lemsValue = results.getStates().get(state).getLastValue();
-										if(lemsValue instanceof LEMSDoubleValue)
-										{
-											PhysicalQuantity quantity = new PhysicalQuantity();
-											LEMSDoubleValue db = (LEMSDoubleValue) lemsValue;
+										PhysicalQuantity quantity = new PhysicalQuantity();
+										LEMSDoubleValue db = (LEMSDoubleValue) lemsValue;
 
-											quantity.setValue(ValuesFactory.getDoubleValue(db.getAsDouble()));
-											newNode.addPhysicalQuantity(quantity);
-										}
-										node.addChild(newNode);
+										quantity.setValue(ValuesFactory.getDoubleValue(db.getAsDouble()));
+										newNode.addPhysicalQuantity(quantity);
 									}
+									node.addChild(newNode);
 								}
 							}
 						}
 					}
-					watchFeature.setWatchListModified(false);
-
-				}}
-			else
-			{
-				UpdateLEMSimulationTreeVisitor updateStateTreeVisitor = new UpdateLEMSimulationTreeVisitor(results, aspect, _geppettoToLems);
-				aspect.getParent().apply(updateStateTreeVisitor);
-				if(updateStateTreeVisitor.getError() != null)
-				{
-					throw new GeppettoExecutionException(updateStateTreeVisitor.getError());
 				}
+				watchFeature.setWatchListModified(false);
+
+			}
+		}
+		else
+		{
+			UpdateLEMSimulationTreeVisitor updateStateTreeVisitor = new UpdateLEMSimulationTreeVisitor(results, aspect, _geppettoToLems);
+			aspect.getParent().apply(updateStateTreeVisitor);
+			if(updateStateTreeVisitor.getError() != null)
+			{
+				throw new GeppettoExecutionException(updateStateTreeVisitor.getError());
 			}
 		}
 	}
@@ -536,7 +534,7 @@ public class JLEMSSimulatorService extends ASimulator
 	{
 		return this.jlemsSimulatorConfig.getSimulatorID();
 	}
-	
+
 	@Override
 	public void registerGeppettoService()
 	{
