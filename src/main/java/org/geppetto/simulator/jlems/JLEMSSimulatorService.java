@@ -62,7 +62,7 @@ import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.VariableNode;
-import org.geppetto.core.model.state.visitors.IterateWatchableVariableListVisitor;
+import org.geppetto.core.model.state.visitors.SerializeUpdateSimulationTreeVisitor;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.services.GeppettoFeature;
 import org.geppetto.core.services.IModelFormat;
@@ -241,7 +241,7 @@ public class JLEMSSimulatorService extends ASimulator
 					// tree
 					String fullPath = _lemsToGeppetto.get(statePath);
 					// check which watchable variables are being watched
-					IterateWatchableVariableListVisitor readWatchableVariableListVisitor = new IterateWatchableVariableListVisitor();
+					SerializeUpdateSimulationTreeVisitor readWatchableVariableListVisitor = new SerializeUpdateSimulationTreeVisitor();
 					simulationTree.apply(readWatchableVariableListVisitor);
 					
 					for(String watchedVariable : readWatchableVariableListVisitor.getWatchableVariableList())
