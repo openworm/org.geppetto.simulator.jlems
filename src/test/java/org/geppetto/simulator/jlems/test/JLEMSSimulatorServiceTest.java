@@ -37,13 +37,6 @@ import javax.measure.unit.Unit;
 
 import junit.framework.Assert;
 
-import org.geppetto.core.data.model.SimpleType;
-import org.geppetto.core.data.model.SimpleVariable;
-import org.geppetto.core.data.model.StructuredType;
-import org.geppetto.core.data.model.VariableList;
-import org.geppetto.core.features.IVariableWatchFeature;
-import org.geppetto.core.model.data.DataModelFactory;
-import org.geppetto.core.services.GeppettoFeature;
 import org.geppetto.core.simulator.AVariableWatchFeature;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.junit.Test;
@@ -95,65 +88,7 @@ public class JLEMSSimulatorServiceTest
 	//		watchList.add("hhpop[0].bioPhys1.membraneProperties.kChans.k.n.q");
 	//		watchList.add("hhpop[0].v");
 	//		simulator.addWatchVariables(watchList);
-	//		simulator.startWatch();
 	//	}
-	
-	/**
-	 * Test method for {@link org.geppetto.simulator.jlems.JLEMSSimulatorService#getWatchableVariables()}.
-	 * @throws Exception 
-	 */
-	@Test
-	public void testGetWatchableVariables() throws Exception
-	{
-		setup();
-		JLEMSSimulatorService simulator = new JLEMSSimulatorService();
-		simulator.addFeature(new AVariableWatchFeature());
-		simulator.setRunConfig(_runConfig);
-		simulator.setWatchableVariables();
-		
-		SimpleType ft = DataModelFactory.getSimpleType(SimpleType.Type.FLOAT);
-
-		SimpleVariable mq = DataModelFactory.getSimpleVariable("q", ft);
-		SimpleVariable hq = DataModelFactory.getSimpleVariable("q", ft);
-		StructuredType m = DataModelFactory.getStructuredType("mT");
-		m.getVariables().add(mq);
-		StructuredType h = DataModelFactory.getStructuredType("hT");
-		h.getVariables().add(hq);
-		SimpleVariable nq = DataModelFactory.getSimpleVariable("q", ft);
-		StructuredType n = DataModelFactory.getStructuredType("nT");
-		n.getVariables().add(nq);
-
-		StructuredType na = DataModelFactory.getStructuredType("naT");
-		na.getVariables().add(DataModelFactory.getSimpleVariable("m", m));
-		na.getVariables().add(DataModelFactory.getSimpleVariable("h", h));
-
-		StructuredType k = DataModelFactory.getStructuredType("kT");
-		k.getVariables().add(DataModelFactory.getSimpleVariable("n", n));
-
-		StructuredType naChans = DataModelFactory.getStructuredType("naChansT");
-		naChans.getVariables().add(DataModelFactory.getSimpleVariable("na", na));
-
-		StructuredType kChans = DataModelFactory.getStructuredType("kChansT");
-		kChans.getVariables().add(DataModelFactory.getSimpleVariable("k", k));
-
-		StructuredType membraneProperties = DataModelFactory.getStructuredType("membranePropertiesT");
-		membraneProperties.getVariables().add(DataModelFactory.getSimpleVariable("naChans", naChans));
-		membraneProperties.getVariables().add(DataModelFactory.getSimpleVariable("kChans", kChans));
-
-		StructuredType bioPhys1 = DataModelFactory.getStructuredType("bioPhys1T");
-		bioPhys1.getVariables().add(DataModelFactory.getSimpleVariable("membraneProperties", membraneProperties));
-
-		StructuredType hhpop = DataModelFactory.getStructuredType("hhpopT");
-		hhpop.getVariables().add(DataModelFactory.getSimpleVariable("bioPhys1", bioPhys1));
-		hhpop.getVariables().add(DataModelFactory.getSimpleVariable("v", ft));
-
-		VariableList expectedList = new VariableList();
-		expectedList.getVariables().add(DataModelFactory.getArrayVariable("hhpop", hhpop, 1));
-
-		ObjectMapper mapper = new ObjectMapper();
-
-		Assert.assertEquals(mapper.writer().writeValueAsString(expectedList), mapper.writer().writeValueAsString(((IVariableWatchFeature)simulator.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)).getWatcheableVariables()));
-	}
 	
 	@Test
 	public void testGetUnitFromLEMSDimension()
