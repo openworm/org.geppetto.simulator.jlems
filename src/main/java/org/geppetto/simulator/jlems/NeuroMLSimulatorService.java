@@ -40,7 +40,6 @@ import org.apache.commons.logging.LogFactory;
 import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
-import org.geppetto.core.data.model.VariableList;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.services.IModelFormat;
@@ -77,11 +76,6 @@ public class NeuroMLSimulatorService extends ASimulator {
 		advanceTimeStep(0, aspect);
 		advanceRecordings(aspect);
 		notifyStateTreeUpdated();
-	}
-
-	@Override
-	public VariableList getForceableVariables() {
-		return new VariableList();
 	}
 
 	@Override
