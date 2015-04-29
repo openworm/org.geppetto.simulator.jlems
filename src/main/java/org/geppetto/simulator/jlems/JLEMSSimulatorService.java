@@ -154,8 +154,10 @@ public class JLEMSSimulatorService extends ASimulator
 
 			this.notifyStateTreeUpdated();
 
-			// add variable watch feature
-			this.addFeature(new AVariableWatchFeature());
+			if(this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)==null){
+				// add variable watch feature
+				this.addFeature(new AVariableWatchFeature());
+			}
 		}
 		catch(LEMSBuildException e)
 		{

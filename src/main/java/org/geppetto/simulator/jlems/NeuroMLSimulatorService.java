@@ -42,6 +42,7 @@ import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.runtime.AspectNode;
+import org.geppetto.core.services.GeppettoFeature;
 import org.geppetto.core.services.IModelFormat;
 import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.IRunConfiguration;
@@ -67,7 +68,9 @@ public class NeuroMLSimulatorService extends ASimulator {
 	public void initialize(List<IModel> models,	ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException {
 		super.initialize(models, listener);
 		//add variable watch feature
-		this.addFeature(new AVariableWatchFeature());
+		if(this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)==null){
+			this.addFeature(new AVariableWatchFeature());
+		}
 	}
 
 	@Override
