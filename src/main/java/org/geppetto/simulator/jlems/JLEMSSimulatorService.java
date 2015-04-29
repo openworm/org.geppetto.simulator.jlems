@@ -154,8 +154,10 @@ public class JLEMSSimulatorService extends ASimulator
 
 			this.notifyStateTreeUpdated();
 
-			// add variable watch feature
-			this.addFeature(new AVariableWatchFeature());
+			if(this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)==null){
+				// add variable watch feature
+				this.addFeature(new AVariableWatchFeature());
+			}
 		}
 		catch(LEMSBuildException e)
 		{
@@ -239,7 +241,7 @@ public class JLEMSSimulatorService extends ASimulator
 				// tree
 				String fullPath = _lemsToGeppetto.get(statePath);
 				// check which watchable variables are being watched
-				SerializeUpdateSimulationTreeVisitor readWatchableVariableListVisitor = new SerializeUpdateSimulationTreeVisitor();
+				SerializeUpdateSimulationTreeVisitor readWatchableVariableListVisitor = new SerializeUpdateSimulationTreeVisitor(watchFeature.getWatchedVariables());
 				simulationTree.apply(readWatchableVariableListVisitor);
 
 				for(String watchedVariable : readWatchableVariableListVisitor.getWatchableVariableList())
