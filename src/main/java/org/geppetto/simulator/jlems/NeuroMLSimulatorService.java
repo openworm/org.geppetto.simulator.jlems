@@ -40,12 +40,12 @@ import org.apache.commons.logging.LogFactory;
 import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
+import org.geppetto.core.data.model.IAspectConfiguration;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.services.GeppettoFeature;
 import org.geppetto.core.services.IModelFormat;
 import org.geppetto.core.services.registry.ServicesRegistry;
-import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
 import org.geppetto.core.simulator.AVariableWatchFeature;
@@ -57,41 +57,46 @@ import org.springframework.stereotype.Service;
  * 
  */
 @Service
-public class NeuroMLSimulatorService extends ASimulator {
+public class NeuroMLSimulatorService extends ASimulator
+{
 
 	@Autowired
 	private SimulatorConfig neuroMLSimulatorConfig;
-	
+
 	private static Log _logger = LogFactory.getLog(NeuroMLSimulatorService.class);
-	
+
 	@Override
-	public void initialize(List<IModel> models,	ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException {
+	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
+	{
 		super.initialize(models, listener);
-		//add variable watch feature
-		if(this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)==null){
+		// add variable watch feature
+		if(this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE) == null)
+		{
 			this.addFeature(new AVariableWatchFeature());
 		}
 	}
 
 	@Override
-	public void simulate(IRunConfiguration arg0, AspectNode aspect)
-			throws GeppettoExecutionException {
+	public void simulate(IAspectConfiguration arg0, AspectNode aspect) throws GeppettoExecutionException
+	{
 		advanceTimeStep(0, aspect);
 		advanceRecordings(aspect);
 		notifyStateTreeUpdated();
 	}
 
 	@Override
-	public String getName() {
+	public String getName()
+	{
 		return this.neuroMLSimulatorConfig.getSimulatorName();
 	}
 
 	@Override
-	public String getId() {
+	public String getId()
+	{
 		// TODO Auto-generated method stub
 		return "neuroMLSimulator";
 	}
-	
+
 	@Override
 	public void registerGeppettoService()
 	{
