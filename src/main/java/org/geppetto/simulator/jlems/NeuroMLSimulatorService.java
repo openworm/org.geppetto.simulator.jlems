@@ -63,7 +63,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	@Autowired
 	private SimulatorConfig neuroMLSimulatorConfig;
 
-	private static Log _logger = LogFactory.getLog(NeuroMLSimulatorService.class);
+	private static Log logger = LogFactory.getLog(NeuroMLSimulatorService.class);
 
 	@Override
 	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
@@ -81,7 +81,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	{
 		advanceTimeStep(0, aspect);
 		advanceRecordings(aspect);
-		notifyStateTreeUpdated();
+		notifySimulatorHasStepped(aspect);
 	}
 
 	@Override

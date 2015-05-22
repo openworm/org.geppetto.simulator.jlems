@@ -37,15 +37,12 @@ import javax.measure.unit.Unit;
 
 import junit.framework.Assert;
 
-import org.geppetto.core.simulator.AVariableWatchFeature;
 import org.geppetto.simulator.jlems.JLEMSSimulatorService;
 import org.junit.Test;
 import org.lemsml.jlems.api.LEMSRunConfiguration;
 import org.lemsml.jlems.api.StateIdentifier;
 import org.lemsml.jlems.api.StateRecord;
 import org.lemsml.jlems.api.interfaces.ILEMSRunConfiguration;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author matteocantarelli

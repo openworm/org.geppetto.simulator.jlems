@@ -54,33 +54,24 @@ import org.geppetto.core.data.model.IAspectConfiguration;
 import org.geppetto.core.features.IVariableWatchFeature;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
-import org.geppetto.core.model.quantities.PhysicalQuantity;
-import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
-import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.EntityNode;
-import org.geppetto.core.model.runtime.VariableNode;
-import org.geppetto.core.model.state.visitors.SetWatchedVariablesVisitor;
-import org.geppetto.core.model.values.ValuesFactory;
 import org.geppetto.core.services.GeppettoFeature;
 import org.geppetto.core.services.IModelFormat;
 import org.geppetto.core.services.registry.ServicesRegistry;
-import org.geppetto.core.simulation.IRunConfiguration;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
 import org.geppetto.core.simulator.AVariableWatchFeature;
 import org.geppetto.core.utilities.VariablePathSerializer;
-import org.lemsml.jlems.api.ALEMSValue;
 import org.lemsml.jlems.api.LEMSBuildConfiguration;
 import org.lemsml.jlems.api.LEMSBuildException;
 import org.lemsml.jlems.api.LEMSBuildOptions;
 import org.lemsml.jlems.api.LEMSBuildOptionsEnum;
 import org.lemsml.jlems.api.LEMSBuilder;
 import org.lemsml.jlems.api.LEMSDocumentReader;
-import org.lemsml.jlems.api.LEMSDoubleValue;
 import org.lemsml.jlems.api.LEMSExecutionException;
 import org.lemsml.jlems.api.LEMSResultsContainer;
 import org.lemsml.jlems.api.LEMSSimulator;
@@ -153,9 +144,9 @@ public class JLEMSSimulatorService extends ASimulator
 				_simulator.initialize(instance, _runConfig);
 			}
 
-			this.notifyStateTreeUpdated();
 
-			if(this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE)==null){
+			if(this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE) == null)
+			{
 				// add variable watch feature
 				this.addFeature(new AVariableWatchFeature());
 			}
@@ -214,7 +205,7 @@ public class JLEMSSimulatorService extends ASimulator
 		}
 
 		updateSimulationTree(results, aspect);
-		notifyStateTreeUpdated();
+		notifySimulatorHasStepped(aspect);
 	}
 
 	/**
