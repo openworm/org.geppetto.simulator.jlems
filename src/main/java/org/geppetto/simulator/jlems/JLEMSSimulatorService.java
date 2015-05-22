@@ -50,7 +50,6 @@ import org.apache.commons.logging.LogFactory;
 import org.geppetto.core.beans.SimulatorConfig;
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.common.GeppettoInitializationException;
-import org.geppetto.core.data.model.IAspectConfiguration;
 import org.geppetto.core.features.IVariableWatchFeature;
 import org.geppetto.core.model.IModel;
 import org.geppetto.core.model.ModelWrapper;
@@ -201,7 +200,7 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @see org.geppetto.core.simulator.ISimulator#simulate(org.geppetto.core.simulation .IRunConfiguration)
 	 */
 	@Override
-	public void simulate(IAspectConfiguration aspectConfiguration, AspectNode aspect) throws GeppettoExecutionException
+	public void simulate(IRunConfiguration runConfiguration, AspectNode aspect) throws GeppettoExecutionException
 	{
 		ILEMSResultsContainer results = new LEMSResultsContainer();
 		try
