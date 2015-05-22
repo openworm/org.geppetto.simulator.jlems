@@ -32,8 +32,6 @@
  *******************************************************************************/
 package org.geppetto.simulator.jlems.test;
 
-import java.io.File;
-
 import org.geppetto.core.common.GeppettoExecutionException;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
@@ -60,7 +58,7 @@ public class TestListener implements ISimulatorCallbackListener
 	}
 
 	@Override
-	public void endOfSteps(String message, File file) {
+	public void endOfSteps(String message) {
 		// TODO Auto-generated method stub
 		
 	}
