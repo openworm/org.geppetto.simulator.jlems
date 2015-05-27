@@ -60,7 +60,7 @@ import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.services.GeppettoFeature;
-import org.geppetto.core.services.IModelFormat;
+import org.geppetto.core.services.ModelFormat;
 import org.geppetto.core.services.registry.ServicesRegistry;
 import org.geppetto.core.simulation.ISimulatorCallbackListener;
 import org.geppetto.core.simulator.ASimulator;
@@ -123,7 +123,7 @@ public class JLEMSSimulatorService extends ASimulator
 		{
 			ILEMSBuilder builder = new LEMSBuilder();
 			// TODO Refactor simulators to deal with more than one model!
-			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(ModelFormat.LEMS);
+			_lemsDocument = (ILEMSDocument) ((ModelWrapper) models.get(0)).getModel(ServicesRegistry.getModelFormat("LEMS"));
 			builder.addDocument(_lemsDocument);
 
 			ILEMSBuildOptions options = new LEMSBuildOptions();
@@ -461,8 +461,7 @@ public class JLEMSSimulatorService extends ASimulator
 	@Override
 	public void registerGeppettoService()
 	{
-		List<IModelFormat> modelFormatList = new ArrayList<IModelFormat>();
-		modelFormatList.add(ModelFormat.LEMS);
-		ServicesRegistry.registerSimulatorService(this, modelFormatList);
+		List<ModelFormat> modelFormats = new ArrayList<ModelFormat>(Arrays.asList(ServicesRegistry.registerModelFormat("LEMS")));
+		ServicesRegistry.registerSimulatorService(this, modelFormats);
 	}
 }
