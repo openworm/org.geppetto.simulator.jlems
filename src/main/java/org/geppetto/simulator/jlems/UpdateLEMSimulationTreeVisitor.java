@@ -35,6 +35,7 @@ package org.geppetto.simulator.jlems;
 import java.util.Map;
 
 import org.geppetto.core.model.quantities.PhysicalQuantity;
+import org.geppetto.core.model.quantities.Quantity;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
@@ -127,7 +128,7 @@ public class UpdateLEMSimulationTreeVisitor extends DefaultStateVisitor {
 			}
 			ALEMSValue lemsValue = _lemsResults.getState(stateId).getLastValue();
 			if (lemsValue instanceof LEMSDoubleValue) {
-				PhysicalQuantity quantity = new PhysicalQuantity();
+				Quantity quantity = new Quantity();
 				quantity.setValue(new DoubleValue(((LEMSDoubleValue) lemsValue)
 						.getAsDouble()));
 				node.addQuantity(quantity);

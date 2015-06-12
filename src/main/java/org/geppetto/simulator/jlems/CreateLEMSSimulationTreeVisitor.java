@@ -34,7 +34,7 @@ package org.geppetto.simulator.jlems;
 
 import java.util.StringTokenizer;
 
-import org.geppetto.core.model.quantities.PhysicalQuantity;
+import org.geppetto.core.model.quantities.Quantity;
 import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
@@ -150,7 +150,7 @@ public class CreateLEMSSimulationTreeVisitor extends DefaultStateVisitor
 						ALEMSValue lemsValue = this._lemsResults.getStates().get(this._state).getLastValue();
 						if(lemsValue instanceof LEMSDoubleValue)
 						{
-							PhysicalQuantity quantity = new PhysicalQuantity();
+							Quantity quantity = new Quantity();
 							LEMSDoubleValue db = (LEMSDoubleValue) lemsValue;
 
 							quantity.setValue(ValuesFactory.getDoubleValue(db.getAsDouble()));
