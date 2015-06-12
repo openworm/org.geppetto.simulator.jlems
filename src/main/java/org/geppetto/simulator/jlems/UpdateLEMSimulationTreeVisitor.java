@@ -34,7 +34,6 @@ package org.geppetto.simulator.jlems;
 
 import java.util.Map;
 
-import org.geppetto.core.model.quantities.PhysicalQuantity;
 import org.geppetto.core.model.quantities.Quantity;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
