@@ -154,7 +154,7 @@ public class CreateLEMSSimulationTreeVisitor extends DefaultStateVisitor
 							LEMSDoubleValue db = (LEMSDoubleValue) lemsValue;
 
 							quantity.setValue(ValuesFactory.getDoubleValue(db.getAsDouble()));
-							newNode.addPhysicalQuantity(quantity);
+							newNode.addQuantity(quantity);
 						}
 						currentNode.addChild(newNode);
 					}

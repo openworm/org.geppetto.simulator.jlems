@@ -130,7 +130,7 @@ public class UpdateLEMSimulationTreeVisitor extends DefaultStateVisitor {
 				PhysicalQuantity quantity = new PhysicalQuantity();
 				quantity.setValue(new DoubleValue(((LEMSDoubleValue) lemsValue)
 						.getAsDouble()));
-				node.addPhysicalQuantity(quantity);
+				node.addQuantity(quantity);
 				_modifiedSimulationTree = true;
 			}
 		}
