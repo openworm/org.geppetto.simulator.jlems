@@ -87,7 +87,7 @@ public class NeuroMLSimulatorService extends ASimulator
 
 	@Override
 	public String getName()
-	{
+	{ 
 		return this.neuroMLSimulatorConfig.getSimulatorName();
 	}
 
