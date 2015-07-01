@@ -40,7 +40,7 @@ import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.VariableNode;
-import org.geppetto.core.model.state.visitors.DefaultStateVisitor;
+import org.geppetto.core.model.state.visitors.RuntimeTreeVisitor;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.lemsml.jlems.api.ALEMSValue;
 import org.lemsml.jlems.api.LEMSDoubleValue;
@@ -54,7 +54,7 @@ import org.lemsml.jlems.api.interfaces.IStateIdentifier;
  * 
  * 
  */
-public class CreateLEMSSimulationTreeVisitor extends DefaultStateVisitor
+public class CreateLEMSSimulationTreeVisitor extends RuntimeTreeVisitor
 {
 
 	private ILEMSResultsContainer _lemsResults;
