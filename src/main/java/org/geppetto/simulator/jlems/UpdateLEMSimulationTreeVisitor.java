@@ -34,13 +34,13 @@ package org.geppetto.simulator.jlems;
 
 import java.util.Map;
 
-import org.geppetto.core.model.quantities.PhysicalQuantity;
+import org.geppetto.core.model.quantities.Quantity;
 import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.runtime.EntityNode;
 import org.geppetto.core.model.runtime.VariableNode;
-import org.geppetto.core.model.state.visitors.DefaultStateVisitor;
+import org.geppetto.core.model.state.visitors.RuntimeTreeVisitor;
 import org.geppetto.core.model.values.DoubleValue;
 import org.lemsml.jlems.api.ALEMSValue;
 import org.lemsml.jlems.api.LEMSDoubleValue;
@@ -53,7 +53,7 @@ import org.lemsml.jlems.api.interfaces.ILEMSResultsContainer;
  *         This method updates the particles already present in the tree adding
  *         new values as found on the position pointer
  */
-public class UpdateLEMSimulationTreeVisitor extends DefaultStateVisitor {
+public class UpdateLEMSimulationTreeVisitor extends RuntimeTreeVisitor {
 
 	private ILEMSResultsContainer _lemsResults;
 	private String _errorMessage = null;
@@ -127,10 +127,10 @@ public class UpdateLEMSimulationTreeVisitor extends DefaultStateVisitor {
 			}
 			ALEMSValue lemsValue = _lemsResults.getState(stateId).getLastValue();
 			if (lemsValue instanceof LEMSDoubleValue) {
-				PhysicalQuantity quantity = new PhysicalQuantity();
+				Quantity quantity = new Quantity();
 				quantity.setValue(new DoubleValue(((LEMSDoubleValue) lemsValue)
 						.getAsDouble()));
-				node.addPhysicalQuantity(quantity);
+				node.addQuantity(quantity);
 				_modifiedSimulationTree = true;
 			}
 		}

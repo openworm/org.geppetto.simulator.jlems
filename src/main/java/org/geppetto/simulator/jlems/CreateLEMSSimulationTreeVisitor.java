@@ -34,13 +34,13 @@ package org.geppetto.simulator.jlems;
 
 import java.util.StringTokenizer;
 
-import org.geppetto.core.model.quantities.PhysicalQuantity;
+import org.geppetto.core.model.quantities.Quantity;
 import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.CompositeNode;
 import org.geppetto.core.model.runtime.VariableNode;
-import org.geppetto.core.model.state.visitors.DefaultStateVisitor;
+import org.geppetto.core.model.state.visitors.RuntimeTreeVisitor;
 import org.geppetto.core.model.values.ValuesFactory;
 import org.lemsml.jlems.api.ALEMSValue;
 import org.lemsml.jlems.api.LEMSDoubleValue;
@@ -54,7 +54,7 @@ import org.lemsml.jlems.api.interfaces.IStateIdentifier;
  * 
  * 
  */
-public class CreateLEMSSimulationTreeVisitor extends DefaultStateVisitor
+public class CreateLEMSSimulationTreeVisitor extends RuntimeTreeVisitor
 {
 
 	private ILEMSResultsContainer _lemsResults;
@@ -150,11 +150,11 @@ public class CreateLEMSSimulationTreeVisitor extends DefaultStateVisitor
 						ALEMSValue lemsValue = this._lemsResults.getStates().get(this._state).getLastValue();
 						if(lemsValue instanceof LEMSDoubleValue)
 						{
-							PhysicalQuantity quantity = new PhysicalQuantity();
+							Quantity quantity = new Quantity();
 							LEMSDoubleValue db = (LEMSDoubleValue) lemsValue;
 
 							quantity.setValue(ValuesFactory.getDoubleValue(db.getAsDouble()));
-							newNode.addPhysicalQuantity(quantity);
+							newNode.addQuantity(quantity);
 						}
 						currentNode.addChild(newNode);
 					}

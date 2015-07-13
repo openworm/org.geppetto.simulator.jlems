@@ -11,21 +11,15 @@
        						http://www.springframework.org/schema/aop/spring-aop-3.1.xsd">
 
 	<!-- Exports the service implementation to other bundles by its service interface -->
-	<osgi:service id="JLEMSSolverExporter" ref="JLEMSSimulatorService" interface="org.geppetto.core.simulator.ISimulator">
-		<osgi:service-properties>
-			<entry key="discoverableID" value="jLemsSimulator" />
-		</osgi:service-properties>
+	<osgi:service id="JLEMSSolverExporter" ref="jLemsSimulator" interface="org.geppetto.core.simulator.ISimulator">
 	</osgi:service>
-	<bean id="JLEMSSimulatorService" scope="thread" class="org.geppetto.simulator.jlems.JLEMSSimulatorService">
+	<bean id="jLemsSimulator" scope="prototype" class="org.geppetto.simulator.jlems.JLEMSSimulatorService">
 	<aop:scoped-proxy proxy-target-class="false"/>
 	</bean>
 	
-	<osgi:service id="NeuroMLSolverExporter" ref="neuroMLSimulatorService" interface="org.geppetto.core.simulator.ISimulator">
-		<osgi:service-properties>
-			<entry key="discoverableID" value="neuroMLSimulator" />
-		</osgi:service-properties>
+	<osgi:service id="NeuroMLSolverExporter" ref="neuroMLSimulator" interface="org.geppetto.core.simulator.ISimulator">
 	</osgi:service>
-	<bean id="neuroMLSimulatorService" scope="thread" class="org.geppetto.simulator.jlems.NeuroMLSimulatorService">
+	<bean id="neuroMLSimulator" scope="prototype" class="org.geppetto.simulator.jlems.NeuroMLSimulatorService">
 	<aop:scoped-proxy proxy-target-class="false"/>
 	</bean>
 			
