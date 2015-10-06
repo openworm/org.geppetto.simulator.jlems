@@ -67,9 +67,9 @@ public class NeuroMLSimulatorService extends ASimulator
 	private static Log logger = LogFactory.getLog(NeuroMLSimulatorService.class);
 
 	@Override
-	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
+	public void initialize(List<IModel> models, ISimulatorCallbackListener listener, IAspectConfiguration aspectConfiguration) throws GeppettoInitializationException, GeppettoExecutionException
 	{
-		super.initialize(models, listener);
+		super.initialize(models, listener, aspectConfiguration);
 		// add variable watch feature
 		if(this.getFeature(GeppettoFeature.VARIABLE_WATCH_FEATURE) == null)
 		{
@@ -78,7 +78,7 @@ public class NeuroMLSimulatorService extends ASimulator
 	}
 
 	@Override
-	public void simulate(IAspectConfiguration arg0, AspectNode aspect) throws GeppettoExecutionException
+	public void simulate(AspectNode aspect) throws GeppettoExecutionException
 	{
 		advanceTimeStep(0, aspect);
 		advanceRecordings(aspect);

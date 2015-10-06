@@ -115,9 +115,9 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @see org.geppetto.core.simulator.ASimulator#initialize(org.geppetto.core.model .IModel, org.geppetto.core.simulation.ISimulatorCallbackListener)
 	 */
 	@Override
-	public void initialize(List<IModel> models, ISimulatorCallbackListener listener) throws GeppettoInitializationException, GeppettoExecutionException
+	public void initialize(List<IModel> models, ISimulatorCallbackListener listener, IAspectConfiguration aspectConfiguration) throws GeppettoInitializationException, GeppettoExecutionException
 	{
-		super.initialize(models, listener);
+		super.initialize(models, listener, aspectConfiguration);
 		setTimeStepUnit("s");
 		try
 		{
@@ -192,7 +192,7 @@ public class JLEMSSimulatorService extends ASimulator
 	 * @see org.geppetto.core.simulator.ISimulator#simulate(org.geppetto.core.simulation .IRunConfiguration)
 	 */
 	@Override
-	public void simulate(IAspectConfiguration aspectConfiguration, AspectNode aspect) throws GeppettoExecutionException
+	public void simulate(AspectNode aspect) throws GeppettoExecutionException
 	{
 		ILEMSResultsContainer results = new LEMSResultsContainer();
 		try
