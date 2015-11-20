@@ -34,14 +34,14 @@ package org.geppetto.simulator.jlems;
 
 import java.util.Map;
 
-import org.geppetto.core.model.quantities.Quantity;
-import org.geppetto.core.model.runtime.AspectNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode.AspectTreeType;
 import org.geppetto.core.model.runtime.EntityNode;
-import org.geppetto.core.model.runtime.VariableNode;
-import org.geppetto.core.model.state.visitors.RuntimeTreeVisitor;
-import org.geppetto.core.model.values.DoubleValue;
+import org.geppetto.core.model.typesystem.AspectNode;
+import org.geppetto.core.model.typesystem.values.DoubleValue;
+import org.geppetto.core.model.typesystem.values.QuantityValue;
+import org.geppetto.core.model.typesystem.values.VariableValue;
+import org.geppetto.core.model.typesystem.visitor.AnalysisVisitor;
 import org.lemsml.jlems.api.ALEMSValue;
 import org.lemsml.jlems.api.LEMSDoubleValue;
 import org.lemsml.jlems.api.StateIdentifier;
@@ -53,7 +53,7 @@ import org.lemsml.jlems.api.interfaces.ILEMSResultsContainer;
  *         This method updates the particles already present in the tree adding
  *         new values as found on the position pointer
  */
-public class UpdateLEMSimulationTreeVisitor extends RuntimeTreeVisitor {
+public class UpdateLEMSimulationTreeVisitor extends AnalysisVisitor {
 
 	private ILEMSResultsContainer _lemsResults;
 	private String _errorMessage = null;
@@ -113,7 +113,7 @@ public class UpdateLEMSimulationTreeVisitor extends RuntimeTreeVisitor {
 	 * (org.geppetto.core.model.runtime.VariableNode)
 	 */
 	@Override
-	public boolean visitVariableNode(VariableNode node) {
+	public boolean visitVariableNode(VariableValue node) {
 		if (node.isWatched()){
 			if(node.getId().equals("time")){
 				return super.visitVariableNode(node);
@@ -127,7 +127,7 @@ public class UpdateLEMSimulationTreeVisitor extends RuntimeTreeVisitor {
 			}
 			ALEMSValue lemsValue = _lemsResults.getState(stateId).getLastValue();
 			if (lemsValue instanceof LEMSDoubleValue) {
-				Quantity quantity = new Quantity();
+				QuantityValue quantity = new QuantityValue();
 				quantity.setValue(new DoubleValue(((LEMSDoubleValue) lemsValue)
 						.getAsDouble()));
 				node.addQuantity(quantity);

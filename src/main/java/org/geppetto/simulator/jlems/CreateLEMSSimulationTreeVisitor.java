@@ -34,14 +34,14 @@ package org.geppetto.simulator.jlems;
 
 import java.util.StringTokenizer;
 
-import org.geppetto.core.model.quantities.Quantity;
-import org.geppetto.core.model.runtime.ACompositeNode;
 import org.geppetto.core.model.runtime.ANode;
 import org.geppetto.core.model.runtime.AspectSubTreeNode;
-import org.geppetto.core.model.runtime.CompositeNode;
-import org.geppetto.core.model.runtime.VariableNode;
-import org.geppetto.core.model.state.visitors.RuntimeTreeVisitor;
-import org.geppetto.core.model.values.ValuesFactory;
+import org.geppetto.core.model.typesystem.values.ACompositeValue;
+import org.geppetto.core.model.typesystem.values.CompositeValue;
+import org.geppetto.core.model.typesystem.values.QuantityValue;
+import org.geppetto.core.model.typesystem.values.ValuesFactory;
+import org.geppetto.core.model.typesystem.values.VariableValue;
+import org.geppetto.core.model.typesystem.visitor.AnalysisVisitor;
 import org.lemsml.jlems.api.ALEMSValue;
 import org.lemsml.jlems.api.LEMSDoubleValue;
 import org.lemsml.jlems.api.interfaces.ILEMSResultsContainer;
@@ -54,7 +54,7 @@ import org.lemsml.jlems.api.interfaces.IStateIdentifier;
  * 
  * 
  */
-public class CreateLEMSSimulationTreeVisitor extends RuntimeTreeVisitor
+public class CreateLEMSSimulationTreeVisitor extends AnalysisVisitor
 {
 
 	private ILEMSResultsContainer _lemsResults;
@@ -82,7 +82,7 @@ public class CreateLEMSSimulationTreeVisitor extends RuntimeTreeVisitor
 	 * @see org.geppetto.core.model.state.visitors.DefaultStateVisitor#inAspectNode (org.geppetto.core.model.runtime.AspectNode)
 	 */
 	@Override
-	public boolean inCompositeNode(CompositeNode node)
+	public boolean inCompositeNode(CompositeValue node)
 	{
 		// we only visit the nodes which belong to the same aspect
 		return super.inCompositeNode(node);
@@ -94,14 +94,14 @@ public class CreateLEMSSimulationTreeVisitor extends RuntimeTreeVisitor
 	 * @see org.geppetto.core.model.state.visitors.DefaultStateVisitor#visitVariableNode (org.geppetto.core.model.runtime.VariableNode)
 	 */
 	@Override
-	public boolean visitVariableNode(VariableNode node)
+	public boolean visitVariableNode(VariableValue node)
 	{
 
 		if(node.getInstancePath().equals(this._variablePath))
 		{
 			String post = this._variablePath.replace(this._simulationTree.getInstancePath(), "");
 			StringTokenizer tokenizer = new StringTokenizer(post, ".");
-			ACompositeNode currentNode = this._simulationTree;
+			ACompositeValue currentNode = this._simulationTree;
 			while(tokenizer.hasMoreElements())
 			{
 				String current = tokenizer.nextToken();
@@ -110,9 +110,9 @@ public class CreateLEMSSimulationTreeVisitor extends RuntimeTreeVisitor
 				{
 					if(child.getId().equals(current))
 					{
-						if(child instanceof ACompositeNode)
+						if(child instanceof ACompositeValue)
 						{
-							currentNode = (ACompositeNode) child;
+							currentNode = (ACompositeValue) child;
 						}
 						found = true;
 						break;
@@ -127,7 +127,7 @@ public class CreateLEMSSimulationTreeVisitor extends RuntimeTreeVisitor
 					if(tokenizer.hasMoreElements())
 					{
 						// not a leaf, create a composite state node
-						CompositeNode newNode = new CompositeNode(current);
+						CompositeValue newNode = new CompositeValue(current);
 						newNode.setId(current);
 						currentNode.addChild(newNode);
 						currentNode = newNode;
@@ -135,7 +135,7 @@ public class CreateLEMSSimulationTreeVisitor extends RuntimeTreeVisitor
 					else
 					{
 						// it's a leaf node
-						VariableNode newNode = new VariableNode(current);
+						VariableValue newNode = new VariableValue(current);
 						newNode.setId(current);
 						// commenting out until it's working
 						/*
@@ -150,7 +150,7 @@ public class CreateLEMSSimulationTreeVisitor extends RuntimeTreeVisitor
 						ALEMSValue lemsValue = this._lemsResults.getStates().get(this._state).getLastValue();
 						if(lemsValue instanceof LEMSDoubleValue)
 						{
-							Quantity quantity = new Quantity();
+							QuantityValue quantity = new QuantityValue();
 							LEMSDoubleValue db = (LEMSDoubleValue) lemsValue;
 
 							quantity.setValue(ValuesFactory.getDoubleValue(db.getAsDouble()));
